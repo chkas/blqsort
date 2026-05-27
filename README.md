@@ -33,12 +33,10 @@ You only need to include `blqsort.h`, and it can be used just as easily as *std:
 ~~~
 .
 #include "blqs.h"
-.
-double data[SIZE];
-
-  .
+double data[SIZE];	
+	.
 	blqs::sort(data, data + SIZE);
-  .
+	.
 ~~~
 
 ### Sorting Custom Data Structures
@@ -48,8 +46,6 @@ In practice, we often need to sort custom data structures. This is where *SIMD* 
 Using *std::sort* or *blqs::sort* gives you much more flexibility;
 
 ~~~
-
-.
 .
 struct entry {
     int32_t id;
@@ -60,10 +56,9 @@ struct entry {
 };
 struct entry data[SIZE];
 
-  .
-  .
+	.
 	blqs::sort(data, data + SIZE);
-  .
+  	.
 ~~~
 
 Execution times for sorting 50 million of this `structs`.
