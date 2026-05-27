@@ -1,5 +1,7 @@
 ## blqsort
 
+**blqsort** is a fast branchless quicksort implementation for C++ that outperforms `std::sort` and `pdqsort` on random datasets.
+
 On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs: <a href="https://easylang.online/blog/branchless">When 'if' slows you down, avoid it.</a>
 
 Performance results naturally depend on the underlying hardware. The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *AMD Ryzen 3* system using *GCC*, both compiled with the `-O3` option.
