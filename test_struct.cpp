@@ -20,6 +20,7 @@ struct entry data[SIZE];
 double cputime() {
 	return (double)clock() / CLOCKS_PER_SEC;
 }
+
 int main() {
 	double t0;
 	printf("Sorting %d million structs ...\n", SIZE / 1000000);

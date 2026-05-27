@@ -16,11 +16,11 @@ int main() {
 
     for (int i = 0; i < SIZE; i++) data[i] = rand();
     t0 = cputime();
-    std::sort(data, data + SIZE);
-    printf("std::sort %.2fs\n", cputime() - t0);
+    blqs::sort(data, data + SIZE);
+    printf("blqs::sort %.2fs\n", cputime() - t0);
 
     for (int i = 0; i < SIZE; i++) data[i] = rand();
     t0 = cputime();
-    blqs::sort(data, data + SIZE);
-    printf("blqs::sort %.2fs\n", cputime() - t0);
+    std::sort(data, data + SIZE);
+    printf("std::sort %.2fs\n", cputime() - t0);
 }
