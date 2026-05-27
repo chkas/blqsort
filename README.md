@@ -12,7 +12,7 @@ Performance results naturally depend on the underlying hardware. The following b
 | pdqsort | 1.33s | 2.81s |
 | blqsort | 1.01s | 2.06s |
 
-[This paper by *Edelkamp* and *A. Weiß*](https://arxiv.org/abs/1604.06697) shows how partitioning performance in Quicksort can be improved by avoiding conditional branches.
+[This paper](https://arxiv.org/abs/1604.06697) by *Edelkamp* and *A. Weiß* shows how partitioning performance in Quicksort can be improved by avoiding conditional branches.
 
 The strategy of using an auxiliary buffer for **branchless partitioning** is inspired by [fluxsort](https://github.com/scandum/fluxsort). The “auxiliary buffer” here means a  512‑element stack array, not heap memory.
 
@@ -33,7 +33,7 @@ You only need to include `blqsort.h`, and it can be used just as easily as *std:
 ~~~
 .
 #include "blqs.h"
-double data[SIZE];	
+double data[SIZE];
 	.
 	blqs::sort(data, data + SIZE);
 	.
