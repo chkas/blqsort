@@ -1,6 +1,6 @@
-## blqsort
+## blqsort - fast branchless quicksort
 
-There are four implementations of a fast branchless Quicksort here, each provided as a single header file.
+There are four implementations of **blqsort** here, each provided as a single header file.
 
 | File | Description |
 | :--- | :--- |
@@ -9,9 +9,7 @@ There are four implementations of a fast branchless Quicksort here, each provide
 | blqs.h | C++ Single-Threaded |
 | blqs_par.h | C++ Multi-Threaded |
 
-**blqsort** is a fast branchless quicksort implementation for C++ that is typically faster than `std::sort` and `pdqsort`.
-
-On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs: [When 'if' slows you down, avoid it.](https://easylang.online/blog/branchless)
+`blqsort` is typically faster than `std::sort` and `pdqsort`.
 
 Performance results naturally depend on the underlying hardware. The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *AMD Ryzen 3* system using *GCC*, both compiled with the `-O3` option.
 
@@ -24,6 +22,7 @@ Performance results naturally depend on the underlying hardware. The following b
 For a fair comparison, the single-threaded version of `blqs` was used here. On an M1, the threaded versions are another factor of 3 to 4 faster. In terms of runtime, the C++ versions differ only very little from the C version.
 
 ---
+On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs: [When 'if' slows you down, avoid it.](https://easylang.online/blog/branchless)
 
 [This paper](https://arxiv.org/abs/1604.06697) by *Edelkamp* and *A. Weiß* shows how partitioning performance in Quicksort can be improved by avoiding conditional branches.
 
@@ -81,8 +80,8 @@ Using *std::sort* or *blqsort* gives you much more flexibility.
 #include "blqs.h"
 
 struct entry {
-    int32_t id;
-    int32_t value;
+    int id;
+    int value;
 
     bool operator<(const entry& other) const {
         return id < other.id;
