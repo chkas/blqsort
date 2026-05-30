@@ -1,9 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
-#include <ctime>
-#include <unistd.h>
+#include <chrono>
+#include <string>
 
-#include <algorithm>
 #include "blqs.h"
 
 constexpr int SIZE = 5000000;
@@ -17,8 +16,11 @@ void test() {
 		}
 	}
 }
-double cputime() {
-	return (double)clock() / CLOCKS_PER_SEC;
+static auto time0 = std::chrono::high_resolution_clock::now();
+double time() {
+    auto t = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = t - time0;
+    return diff.count();
 }
 
 #define STRSZ 40
@@ -33,8 +35,8 @@ int main(int argc, char* argv[]) {
 	printf("Sorting %d million strings with length %d ...\n", SIZE / 1000000, STRSZ);
 	for (int i = 0; i < SIZE; i++) data[i] = genstr();
 
-	t0 = cputime();
+	t0 = time();
 	blqs::sort(data, data + SIZE);
-	printf("blqs::sort %.3fs\n", cputime() - t0);
+	printf("blqs::sort %.3fs\n", time() - t0);
 	test();
 }
