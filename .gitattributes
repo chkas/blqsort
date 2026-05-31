@@ -1,4 +1,2 @@
-blqsort.h     linguist-language=C
-blqsort_thr.h linguist-language=C
-blqs.h        linguist-language=C++
-blqs_thr.h    linguist-language=C++
+c/*   linguist-language=C
+cpp/* linguist-language=C++
