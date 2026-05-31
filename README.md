@@ -11,13 +11,13 @@ There are four implementations of **blqsort** here, each provided as a single he
 
 `blqsort` is typically faster than `std::sort` and `pdqsort`.
 
-Performance results naturally depend on the underlying hardware. The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *AMD Ryzen 3* system using *GCC*, both compiled with the `-O3` option.
+Performance results naturally depend on the underlying hardware. The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *AMD Ryzen 3 (Linux)* system using *GCC*, both compiled with the `-O3` option.
 
 | Implementation | Apple M1 | AMD Ryzen |
 | :--- | :--- | :--- |
 | std::sort | 1.33s | 5.56s |
 | pdqsort | 1.33s | 2.81s |
-| **blqsort** | 1.01s | 2.06s |
+| **blqsort** (single threaded) | 1.01s | 2.06s |
 
 For a fair comparison, the single-threaded version of `blqs` was used here. On an M1, the threaded versions are another factor of 3 to 4 faster. In terms of runtime, the C++ versions differ only very little from the C version.
 
@@ -73,7 +73,7 @@ For the C multithreaded variant, which uses POSIX threads, include `blqsort_thr.
 
 ## Sorting Custom Data Structures
 
-In practice, we often need to sort custom data structures. This is where *SIMD* libraries like *Google Highway* — while very fast for simple numbers — become difficult to use.
+In practice, we often need to sort custom data structures. This is where *SIMD* libraries like *Google Highway* - while very fast for simple numbers - become difficult to use.
 
 Using *std::sort* or *blqsort* gives you much more flexibility.
 
