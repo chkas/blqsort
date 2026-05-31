@@ -17,11 +17,12 @@ Performance results naturally depend on the underlying hardware. The following b
 | :--- | :--- | :--- |
 | std::sort | 1.33s | 5.56s |
 | pdqsort | 1.33s | 2.81s |
-| blqsort | 1.02s | 2.06s |
+| **blqsort** | 1.01s | 2.06s |
 
 For a fair comparison, the single-threaded version of `blqs` was used here. On an M1, the threaded versions are another factor of 3 to 4 faster. In terms of runtime, the C++ versions differ only very little from the C version.
 
 ---
+
 On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs: [When 'if' slows you down, avoid it.](https://easylang.online/blog/branchless)
 
 [This paper](https://arxiv.org/abs/1604.06697) by *Edelkamp* and *A. Weiß* shows how partitioning performance in Quicksort can be improved by avoiding conditional branches.
@@ -50,7 +51,7 @@ double data[SIZE];
 blqs::sort(data, data + SIZE);
 ```
 
-For the multithreaded variant, include `blqs_thr.h` instead of `blqs.h`. The function call remains the same.
+For the C++ multithreaded variant, which uses C++ threads, include `blqs_thr.h` instead of `blqs.h`. The function call remains the same.
 
 ## C
 
@@ -59,14 +60,16 @@ In C, the code specialized for the data type is generated using `#define`.
 ### Usage
 
 ```c
-#define IS_LOWER(a, b) ((a) < (b))
-#define TYPE double
+#define BLQS_CMP(a, b) ((a) < (b))
+#define BLQS_TYPE double
 #include "blqsort.h"
+
+double data[SIZE];
 
 blqsort(data, SIZE);
 ```
 
-For the multithreaded variant, which uses POSIX threads, include `blqsort_thr.h` instead of `blqsort.h`. The function call remains the same here as well.
+For the C multithreaded variant, which uses POSIX threads, include `blqsort_thr.h` instead of `blqsort.h`. The function call remains the same here as well.
 
 ## Sorting Custom Data Structures
 
@@ -101,8 +104,8 @@ struct data {
     int value;
 };
 
-#define IS_LOWER(a, b) (((a).id) < ((b).id))
-#define TYPE struct data
+#define BLQS_CMP(a, b) (((a).id) < ((b).id))
+#define BLQS_TYPE struct data
 #include "blqsort.h"
 
 blqsort(data, SIZE);
@@ -114,4 +117,4 @@ Execution times for sorting 50 million of these `structs`.
 | :--- | :--- | :--- |
 | std::sort | 3.46s | 4.75s |
 | pdqsort | 3.46s | 4.72s |
-| blqsort | 0.97s | 2.20s |
+| **blqsort** | 0.97s | 2.20s |

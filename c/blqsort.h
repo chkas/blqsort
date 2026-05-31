@@ -4,52 +4,60 @@
 #ifndef BLQSORT_H
 #define BLQSORT_H
 
+#ifndef BLQS_PREFIX
+#define BLQS_PREFIX bl
+#endif
+
+#ifndef BLQS_CMP
+#define BLQS_CMP(a, b) ((a) < (b))
+#endif
+
+#define BLQS_CAT2(a,b) a##b
+#define BLQS_CAT(a,b) BLQS_CAT2(a,b)
+#define BLQS(x) BLQS_CAT(BLQS_PREFIX, x)
+
 #include <stddef.h>
 #include <string.h>
 
-static TYPE* partition(TYPE* left, TYPE* right);
-static void sorting_network(TYPE* left, int size);
-static void heap_sort(TYPE* left, TYPE* right);
-static TYPE* partition_small(TYPE* left, TYPE* right);
+static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right);
+static void BLQS(sorting_network)(BLQS_TYPE* left, int size);
+static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right);
+static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right);
 
-#define SMALLPART 512
+#define BLQS_SMALLPART 512
 
-static void sortr(TYPE* left, TYPE* right) {
+static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	while (1) {
 		ptrdiff_t partsz = right - left;
 		if (partsz <= 11) {
-			sorting_network(left, partsz);
+			BLQS(sorting_network)(left, partsz);
 			return;
 		}
-		TYPE* mid;
-		if (partsz <= SMALLPART) mid = partition_small(left, right);
+		BLQS_TYPE* mid;
+		if (partsz <= BLQS_SMALLPART) mid = BLQS(partition_small)(left, right);
 		else {
-			mid = partition(left, right);
+			mid = BLQS(partition)(left, right);
 			if ((mid - left) * 16 < partsz) {
-				heap_sort(left, right);
+				BLQS(heap_sort)(left, right);
 				return;
 			}
 		}
 		if (mid - left < right - mid) {
-			sortr(left, mid - 1);
+			BLQS(sortr)(left, mid - 1);
 			left = mid + 1;
 		} else {
-			sortr(mid + 1, right);
+			BLQS(sortr)(mid + 1, right);
 			right = mid - 1;
 		}
 	}
 }
 
-void blqsort(TYPE* data, int len) {
-	sortr(data, data + len - 1);
-}
-
-void heap_sort(TYPE* left, TYPE* right) {
+static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	long n = right - left + 1;
 	if (n < 2) return;
-	for (long i = n / 2, j; ; ) {
-		TYPE k;
+	for (long i = n / 2, j;;) {
+		BLQS_TYPE k;
 		if (i > 0) {
 			k = left[--i];
 		}
@@ -62,8 +70,8 @@ void heap_sort(TYPE* left, TYPE* right) {
 		j = i;
 		while (j * 2 + 1 < n) {
 			long child = j * 2 + 1;
-			if (child + 1 < n && IS_LOWER(left[child], left[child + 1])) child++;
-			if (!IS_LOWER(k, left[child])) break;
+			if (child + 1 < n && BLQS_CMP(left[child], left[child + 1])) child++;
+			if (!BLQS_CMP(k, left[child])) break;
 			left[j] = left[child];
 			j = child;
 		}
@@ -72,14 +80,12 @@ void heap_sort(TYPE* left, TYPE* right) {
 }
 
 #define sort2(a, b) do {  \
-	TYPE x = a; \
-	TYPE y = b; \
-	unsigned m = IS_LOWER(x, y); \
+	BLQS_TYPE x = a; \
+	BLQS_TYPE y = b; \
+	unsigned m = BLQS_CMP(x, y); \
 	a = m ? x : y;  \
 	b = m ? y : x;  \
 } while(0)
-
-// https://bertdobbelaere.github.io/sorting_networks.html
 
 #define sort3(a, b, c) do { \
 	sort2(a, b); sort2(b, c); sort2(a, b); \
@@ -165,83 +171,68 @@ void heap_sort(TYPE* left, TYPE* right) {
 	sort2(b,c); sort2(d,e); sort2(f,g); sort2(h,i); sort2(j,k); \
 } while (0)
 
-void sorting_network(TYPE* l, int partsz_min_1) {
+static void BLQS(sorting_network)(BLQS_TYPE* l, int partsz_min_1) {
 	switch (partsz_min_1) {
-	case 11:
-		sort12(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
-			l[8], l[9], l[10], l[11]);
-		break;
-	case 10:
-		sort11(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10]);
-		break;
-	case 9:
-		sort10(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9]);
-		break;
-	case 8:
-		sort9(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8]);
-		break;
-	case 7:
-		sort8(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7]);
-		break;
-	case 6:
-		sort7(l[0], l[1], l[2], l[3], l[4], l[5], l[6]);
-		break;
-	case 5:
-		sort6(l[0], l[1], l[2], l[3], l[4], l[5]);
-		break;
-	case 4:
-		sort5(l[0], l[1], l[2], l[3], l[4]);
-		break;
-	case 3:
-		sort4(l[0], l[1], l[2], l[3]);
-		break;
-	case 2:
-		sort3(l[0], l[1], l[2]);
-		break;
-	case 1:
-		sort2(l[0], l[1]);
-		break;
-	case 0:
-		break;
+	case 11: sort12(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11]); break;
+	case 10: sort11(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10]); break;
+	case 9: sort10(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9]); break;
+	case 8: sort9(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8]); break;
+	case 7: sort8(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7]); break;
+	case 6: sort7(l[0],l[1],l[2],l[3],l[4],l[5],l[6]); break;
+	case 5: sort6(l[0],l[1],l[2],l[3],l[4],l[5]); break;
+	case 4: sort5(l[0],l[1],l[2],l[3],l[4]); break;
+	case 3: sort4(l[0],l[1],l[2],l[3]); break;
+	case 2: sort3(l[0],l[1],l[2]); break;
+	case 1: sort2(l[0],l[1]); break;
+	case 0: break;
 	}
 }
-#define med5(a, b, c, d, e) do { \
-	sort2(a, b); sort2(c, d); sort2(a, c); \
-	sort2(b, d); sort2(b, c); sort2(c, e); \
-	sort2(b, c); \
+
+#define med5(a,b,c,d,e) do { \
+	sort2(a,b); sort2(c,d); sort2(a,c); \
+	sort2(b,d); sort2(b,c); sort2(c,e); \
+	sort2(b,c); \
 } while(0)
-
-TYPE* partition_small(TYPE* restrict  left, TYPE* restrict  right) {
-	TYPE* outerleft = left;
-	TYPE* pivp = left + (right - left) / 2;
-
-	med5(left[1], left[2], *pivp, right[-1], *right);
-	left += 3;
-	right -= 2;
-
-	TYPE piv = *pivp;
-	*pivp = *outerleft;
-
-	TYPE swbuf[SMALLPART];
-	TYPE* sw = swbuf;
-	TYPE* lwr = left;
-	while (left <= right) {
-		unsigned h = IS_LOWER(*left, piv); *lwr = *sw = *left++; lwr += h; sw += !h;
-	}
-	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(TYPE));
-	lwr -= 1;
-	*outerleft = *lwr;
-	*lwr = piv;
-	return lwr;
-}
 
 #define SWSZ 1024
 #define UNROLL 16
 
-TYPE* partition(TYPE* restrict left, TYPE* restrict right) {
+static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* restrict left, BLQS_TYPE* restrict right) {
+	BLQS_TYPE* outerleft = left;
+	BLQS_TYPE* pivp = left + (right - left) / 2;
 
-	TYPE* outerleft = left;
-	TYPE* pivp = left + (right - left) / 2;
+	med5(left[1], left[2], *pivp, right[-1], *right);
+
+	left += 3;
+	right -= 2;
+
+	BLQS_TYPE piv = *pivp;
+	*pivp = *outerleft;
+
+	BLQS_TYPE swbuf[BLQS_SMALLPART];
+	BLQS_TYPE* sw = swbuf;
+	BLQS_TYPE* lwr = left;
+
+	while (left <= right) {
+		unsigned h = BLQS_CMP(*left, piv);
+		*lwr = *sw = *left++;
+		lwr += h;
+		sw += !h;
+	}
+
+	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
+
+	lwr -= 1;
+	*outerleft = *lwr;
+	*lwr = piv;
+
+	return lwr;
+}
+
+static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* restrict left, BLQS_TYPE* restrict right) {
+
+	BLQS_TYPE* outerleft = left;
+	BLQS_TYPE* pivp = left + (right - left) / 2;
 
 	med5(left[3], left[4], left[1], left[5], left[6]);
 	med5(left[11], left[12], left[2], left[13], left[14]);
@@ -249,50 +240,76 @@ TYPE* partition(TYPE* restrict left, TYPE* restrict right) {
 	med5(right[-6], right[-7], right[-1], right[-8], right[-9]);
 	med5(right[-15], right[-14], right[0], right[-13], right[-12]);
 	med5(left[1], left[2], pivp[0], right[-1], right[0]);
+
 	left += 3;
 	right -= 2;
 
-	TYPE piv = *pivp;
+	BLQS_TYPE piv = *pivp;
 	*pivp = *outerleft;
 
-	TYPE swbuf[SWSZ];
+	BLQS_TYPE swbuf[SWSZ];
+	BLQS_TYPE* lwr = left;
+	BLQS_TYPE* rwr = right;
+	BLQS_TYPE* sw = swbuf;
 
-	TYPE* lwr = left;
-	TYPE* rwr = right;
-
-	TYPE* sw = swbuf;
 	while (sw < swbuf + SWSZ - UNROLL && left <= right - UNROLL) {
 		for (int i = UNROLL; i--;) {
-			unsigned h = IS_LOWER(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
+			unsigned h = BLQS_CMP(*right, piv);
+			*rwr = *sw = *right--;
+			rwr -= !h;
+			sw += h;
 		}
 	}
+
 	while (sw < swbuf + SWSZ - UNROLL && left <= right) {
-		unsigned h = IS_LOWER(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
+		unsigned h = BLQS_CMP(*right, piv);
+		*rwr = *sw = *right--;
+		rwr -= !h;
+		sw += h;
 	}
+
 	while (left <= right - UNROLL) {
 		while (rwr > right + UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				unsigned h = IS_LOWER(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
+				unsigned h = BLQS_CMP(*left, piv);
+				*lwr = *rwr = *left++;
+				lwr += h;
+				rwr -= !h;
 			}
 		}
+
 		while (lwr < left - UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				unsigned h = IS_LOWER(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
+				unsigned h = BLQS_CMP(*right, piv);
+				*rwr = *lwr = *right--;
+				rwr -= !h;
+				lwr += h;
 			}
 		}
 	}
+
 	while (rwr > right && left <= right) {
-		unsigned h = IS_LOWER(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
+		unsigned h = BLQS_CMP(*left, piv);
+		*lwr = *rwr = *left++;
+		lwr += h;
+		rwr -= !h;
 	}
+
 	while (left <= right) {
-		unsigned h = IS_LOWER(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
+		unsigned h = BLQS_CMP(*right, piv);
+		*rwr = *lwr = *right--;
+		rwr -= !h;
+		lwr += h;
 	}
-	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(TYPE));
+
+	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
 
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
 }
+#undef SWSZ
+#undef UNROLL
 
 #undef med5
 #undef sort2
@@ -306,6 +323,12 @@ TYPE* partition(TYPE* restrict left, TYPE* restrict right) {
 #undef sort10
 #undef sort11
 #undef sort12
-#undef SMALLPART
+#undef BLQS_SMALLPART
+
+// ------------------------  public API  -----------------------------
+
+static void BLQS(qsort)(BLQS_TYPE* data, int len) {
+	BLQS(sortr)(data, data + len - 1);
+}
 
 #endif
