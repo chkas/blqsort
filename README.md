@@ -11,7 +11,7 @@ There are four implementations of **blqsort** here, each provided as a single he
 
 `blqsort` is typically faster than `std::sort` and `pdqsort`.
 
-Performance results naturally depend on the underlying hardware. The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *AMD Ryzen 3 (Linux)* system using *GCC*, both compiled with the `-O3` option.
+Performance results naturally depend on the underlying hardware. The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *AMD Ryzen 3 (Linux)* system using *GCC*, both compiled with the `-O3` option. [test_double.cpp](cpp/test_double.cpp)
 
 | Implementation | Apple M1 | AMD Ryzen |
 | :--- | :--- | :--- |
