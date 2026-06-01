@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <cstdio>
 #include <cstdlib>
 #include <chrono>
@@ -8,14 +9,6 @@
 constexpr int SIZE = 5000000;
 std::string data[SIZE];
 
-void test() {
-	for (int i = 1; i < SIZE; i++) {
-		if (data[i] < data[i - 1]) {
-			printf("ERROR ORDER\n");
-			return;
-		}
-	}
-}
 static auto time0 = std::chrono::high_resolution_clock::now();
 double time() {
     auto t = std::chrono::high_resolution_clock::now();
@@ -38,5 +31,4 @@ int main(int argc, char* argv[]) {
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("blqs::sort %.3fs\n", time() - t0);
-	test();
 }

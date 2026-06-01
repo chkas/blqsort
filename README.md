@@ -21,13 +21,33 @@ Performance results naturally depend on the underlying hardware. The following b
 
 For a fair comparison, the single-threaded version of `blqs` was used here. On an M1, the threaded versions are another factor of 3 to 4 faster. In terms of runtime, the C++ versions differ only very little from the C version.
 
----
+### Branchless programming
 
-On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs: [When 'if' slows you down, avoid it.](https://easylang.online/blog/branchless)
+On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs. This is much slower:
 
-[This paper](https://arxiv.org/abs/1604.06697) by *Edelkamp* and *A. Weiß* shows how partitioning performance in Quicksort can be improved by avoiding conditional branches.
+```c
+for (int i = 0; i < 1000; i++) {
+	if (numbers[i] < 500) {
+		small_numbers[smlen] = numbers[i];
+		smlen += 1;
+	}
+}
+```
+
+than the branchless version:
+
+```c
+for (int i = 0; i < 1000; i++) {
+	small_numbers[smlen] = numbers[i];
+	smlen += (numbers[i] < 500);
+}
+```
+
+[This paper](https://arxiv.org/abs/1604.06697) by *Edelkamp* and *Weiß* shows how partitioning performance in Quicksort can be improved by avoiding conditional branches.
 
 The strategy of using an auxiliary buffer for **branchless partitioning** is inspired by [fluxsort](https://github.com/scandum/fluxsort). The “auxiliary buffer” here means a 512-element stack array, not heap memory.
+
+### Pivot strategy and sorting network
 
 To avoid the `O(n²)` runtime caused by bad input data, the program can group identical elements together and switch to *heapsort* for that specific part if it detects a big imbalance during partitioning. The program also checks if a partition is already sorted.
 
@@ -99,14 +119,15 @@ blqs::sort(data, data + SIZE);
 ### C
 
 ```c
-struct data {
-    int id;
-    int value;
+struct entry {
+	int id;
+	int value;
 };
-
 #define BLQS_CMP(a, b) (((a).id) < ((b).id))
-#define BLQS_TYPE struct data
+#define BLQS_TYPE struct entry
 #include "blqsort.h"
+
+struct entry data[SIZE];
 
 blqsort(data, SIZE);
 ```
@@ -118,3 +139,9 @@ Execution times for sorting 50 million of these `structs`.
 | std::sort | 3.46s | 4.75s |
 | pdqsort | 3.46s | 4.72s |
 | **blqsort** | 0.97s | 2.20s |
+
+### Links
+
+[When 'if' slows you down, avoid it.](https://easylang.online/blog/branchless)
+
+[Interactive sorting demo](https://easylang.online/sorting)

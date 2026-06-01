@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <cstdio>
 #include <cstdlib>
 #include <chrono>
@@ -7,8 +8,8 @@
 constexpr int SIZE = 50000000;
 
 struct entry {
-	int32_t id;
-	int32_t value;
+	int id;
+	int value;
 	bool operator<(const entry& other) const {
 		return id < other.id;
 	}

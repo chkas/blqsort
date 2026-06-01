@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: MIT
-// (c) christof.kaser@gmail.com
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -8,18 +6,7 @@
 
 #define BLQS_CMP(a, b) ((a) < (b))
 #define BLQS_TYPE double
-
-#ifdef WITH_THREADS
-
-#define NAME "Threaded Branchless Quicksort"
-#include "blqsort_thr.h"
-
-#else
-
-#define NAME "Branchless Quicksort"
 #include "blqsort.h"
-
-#endif
 
 unsigned chksum;
 unsigned hash_el(void *p, int sz) {
@@ -52,13 +39,13 @@ double ts(void) {
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
 }
 #define SIZE (50 * 1000000)
-BLQS_TYPE data[SIZE];
+double data[SIZE];
 
 int main(void) {
 
 	srand(time(NULL));
 	init(data, SIZE);
-	printf("Sorting %d million numbers " NAME " ...\n", SIZE / 1000000);
+	printf("Sorting %d million doubles with blqs ...\n", SIZE / 1000000);
 	double a =  ts();
 	blqsort(data, SIZE);
 	printf("%.2fs\n", ts() - a);

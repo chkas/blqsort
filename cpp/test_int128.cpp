@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
