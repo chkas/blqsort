@@ -30,5 +30,5 @@ int main(int argc, char* argv[]) {
 
 	t0 = time();
 	blqs::sort(data, data + SIZE);
-	printf("blqs::sort %.3fs\n", time() - t0);
+	printf("blqs::sort %.2fs\n", time() - t0);
 }

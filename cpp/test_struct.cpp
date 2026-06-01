@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <chrono>
+#include <algorithm>
 
 #include "blqs.h"
 

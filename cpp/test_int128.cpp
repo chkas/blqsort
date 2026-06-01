@@ -2,8 +2,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-
 #include <algorithm>
+#include <chrono>
+
 #include "blqs.h"
 
 constexpr int SIZE = 50000000;
