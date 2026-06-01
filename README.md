@@ -5,9 +5,9 @@ There are four implementations of **blqsort** here, each provided as a single he
 | File | Description |
 | :--- | :--- |
 | [blqsort.h](c/blqsort.h) | C Single-Threaded |
-| [blqsort_par.h](c/blqsort_par.h) | C Multi-Threaded |
+| [blqsort_par.h](c/blqsort_thr.h) | C Multi-Threaded |
 | [blqs.h](cpp/blqs.h) | C++ Single-Threaded |
-| [blqs_par.h](cpp/blqs_par.h) | C++ Multi-Threaded |
+| [blqs_par.h](cpp/blqs_thr.h) | C++ Multi-Threaded |
 
 `blqsort` is typically faster than `std::sort` and `pdqsort`.
 
