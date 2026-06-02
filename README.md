@@ -1,16 +1,5 @@
 ## blqsort - fast branchless quicksort
 
-There are four implementations of **blqsort** here, each provided as a single header file.
-
-| File | Description |
-| :--- | :--- |
-| [blqsort.h](c/blqsort.h) | C Single-Threaded |
-| [blqsort_thr.h](c/blqsort_thr.h) | C Multi-Threaded |
-| [blqs.h](cpp/blqs.h) | C++ Single-Threaded |
-| [blqs_thr.h](cpp/blqs_thr.h) | C++ Multi-Threaded |
-
-`blqsort` is typically faster than `std::sort` and `pdqsort`.
-
 Performance results naturally depend on the underlying hardware. The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *AMD Ryzen 3 (Linux)* system using *GCC*, both compiled with the `-O3` option. [test_double.cpp](cpp/test_double.cpp)
 
 | Implementation | Apple M1 | AMD Ryzen |
@@ -45,9 +34,13 @@ for (int i = 0; i < 1000; i++) {
 
 [This paper](https://arxiv.org/abs/1604.06697) by *Edelkamp* and *Weiß* shows how partitioning performance in Quicksort can be improved by avoiding conditional branches.
 
-The strategy of using an auxiliary buffer for **branchless partitioning** is inspired by [fluxsort](https://github.com/scandum/fluxsort). The “auxiliary buffer” here means a 512-element stack array, not heap memory.
+The strategy of using an auxiliary buffer for **branchless partitioning** is inspired by [fluxsort](https://github.com/scandum/fluxsort). The “auxiliary buffer” here means a  1024‑element stack array, not heap memory.
 
-### Pivot strategy and sorting network
+First, 1024 elements are copied from one side into an auxiliary buffer to make room for subsequent operations. Then, we alternately copy a 1024-element block to the left and right in a branchless manner. The left pointer is only incremented if the element is smaller than the pivot, otherwise, the right pointer is incremented - branchless, of course.
+
+This involves more more than double the necessary copy operations. For data types that are cheap to copy, however, this is much less expensive than the branch mispredictions that would otherwise occur.
+
+### Pivot strategy, bad input and sorting network
 
 To avoid the `O(n²)` runtime caused by bad input data, the program can group identical elements together and switch to *heapsort* for that specific part if it detects a big imbalance during partitioning. The program also checks if a partition is already sorted.
 
@@ -57,7 +50,7 @@ For 2 to 12 elements, the algorithm uses custom sorting networks. This approach 
 
 ## C++
 
-For types with higher copy or move costs, such as strings, the buffer-based branchless approach becomes less efficient. In this case, a **BlockQuicksort** variant is used, where only element indices are processed branchlessly, and the actual data is moved using fewer swap operations.
+For types with higher copy costs that are not `is_trivially_copyable` (such as strings), the buffer-based branchless approach becomes less efficient. In such cases, a **BlockQuicksort** variant is used instead. This processes only the element indices in a branchless manner and then moves the actual data with fewer swaps.
 
 ### Usage
 
