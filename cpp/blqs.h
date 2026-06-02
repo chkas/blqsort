@@ -173,7 +173,7 @@ constexpr int SWSZ = 1024;
 constexpr int UNROLL = 16;
 
 template<typename T, typename Compare>
-static T* partition_small(T* __restrict__ left, T* __restrict__ right, Compare comp) {
+static T* partition_small(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 	med5(left[1], left[2], *pivp, right[-1], *right, comp);
@@ -193,7 +193,7 @@ static T* partition_small(T* __restrict__ left, T* __restrict__ right, Compare c
 }
 
 template<typename T, typename Compare>
-static T* partition_large(T* __restrict__ left, T* __restrict__ right, Compare comp) {
+static T* partition_large(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 

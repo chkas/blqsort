@@ -197,7 +197,7 @@ static void BLQS(sorting_network)(BLQS_TYPE* l, int partsz_min_1) {
 #define SWSZ 1024
 #define UNROLL 16
 
-static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* restrict left, BLQS_TYPE* restrict right) {
+static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
 
@@ -229,7 +229,7 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* restrict left, BLQS_TYPE* res
 	return lwr;
 }
 
-static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* restrict left, BLQS_TYPE* restrict right) {
+static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
