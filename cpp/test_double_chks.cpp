@@ -50,6 +50,7 @@ int main() {
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("Duplicates: %.2fs\n", time() - t0);
+	prchksum();
 
 	printf("\n");
 	printf("std::sort - sorting %d million doubles ...\n", SIZE / 1000000);
@@ -73,5 +74,6 @@ int main() {
 	t0 = time();
 	std::sort(data, data + SIZE);
 	printf("Duplicates: %.2fs\n", time() - t0);
+	prchksum();
 
 }

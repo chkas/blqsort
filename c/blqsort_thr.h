@@ -276,12 +276,16 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
 
-	med5(left[1], left[2], *pivp, right[-1], *right);
+	BLQS_TYPE l1 = left[1], l2 = left[2];
+	BLQS_TYPE piv = *pivp;
+	BLQS_TYPE r1 = right[-1], r0 = *right;
+	med5(l1, l2, piv, r1, r0);
+	left[1] = l1; left[2] = l2;
+	right[-1] = r1; *right = r0;
 
 	left += 3;
 	right -= 2;
 
-	BLQS_TYPE piv = *pivp;
 	*pivp = *outerleft;
 
 	BLQS_TYPE swbuf[SMALLPART];
@@ -312,17 +316,18 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
 
+	BLQS_TYPE piv = *pivp;
+
 	med5(left[3], left[4], left[1], left[5], left[6]);
 	med5(left[11], left[12], left[2], left[13], left[14]);
-	med5(pivp[-20], pivp[-10], pivp[0], pivp[10], pivp[20]);
+	med5(pivp[-20], pivp[-10], piv, pivp[10], pivp[20]);
 	med5(right[-6], right[-7], right[-1], right[-8], right[-9]);
 	med5(right[-15], right[-14], right[0], right[-13], right[-12]);
-	med5(left[1], left[2], pivp[0], right[-1], right[0]);
+	med5(left[1], left[2], piv, right[-1], right[0]);
 
 	left += 3;
 	right -= 2;
 
-	BLQS_TYPE piv = *pivp;
 	*pivp = *outerleft;
 
 	BLQS_TYPE swbuf[SWSZ];

@@ -176,9 +176,16 @@ template<typename T, typename Compare>
 static T* partition_small(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
-	med5(left[1], left[2], *pivp, right[-1], *right, comp);
+
+	T l1 = left[1], l2 = left[2];
+	T piv = *pivp;
+	T r1 = right[-1], r0 = *right;
+	med5(l1, l2, piv, r1, r0, comp);
+	left[1] = l1; left[2] = l2;
+	right[-1] = r1; *right = r0;
+
 	left += 3; right -= 2;
-	T piv = *pivp; *pivp = *outerleft;
+	*pivp = *outerleft;
 
 	T swbuf[SMALLPART];
 	T *sw = swbuf, *lwr = left;
@@ -197,15 +204,17 @@ static T* partition_large(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 
+	T piv = *pivp;
+
 	med5(left[1], left[2], left[3], left[4], left[5], comp);
 	med5(left[21], left[22], left[23], left[24], left[25], comp);
-	med5(pivp[-2], pivp[-1], pivp[0], pivp[1], pivp[2], comp);
+	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2], comp);
 	med5(right[-14], right[-13], right[-12], right[-11], right[-10], comp);
 	med5(right[-4], right[-3], right[-2], right[-1], right[0], comp);
-	med5(left[3], left[23], pivp[0], right[-12], right[-2], comp);
+	med5(left[3], left[23], piv, right[-12], right[-2], comp);
 
 	left += 1;
-	T piv = *pivp; *pivp = *outerleft;
+	*pivp = *outerleft;
 
 	while (comp(*left, piv)) left++;
 	if (left >= outerleft + 12) {

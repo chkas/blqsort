@@ -272,12 +272,16 @@ static inline T* partition_small(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 
-	med5(left[1], left[2], *pivp, right[-1], *right, comp);
+	T l1 = left[1], l2 = left[2];
+	T piv = *pivp;
+	T r1 = right[-1], r0 = *right;
+	med5(l1, l2, piv, r1, r0, comp);
+	left[1] = l1; left[2] = l2;
+	right[-1] = r1; *right = r0;
 
 	left += 3;
 	right -= 2;
 
-	T piv = *pivp;
 	*pivp = *outerleft;
 
 	T swbuf[SMALLPART];
@@ -305,17 +309,18 @@ static inline T* partition(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 
+	T piv = *pivp;
+
 	med5(left[3], left[4], left[1], left[5], left[6], comp);
 	med5(left[11], left[12], left[2], left[13], left[14], comp);
-	med5(pivp[-20], pivp[-10], pivp[0], pivp[10], pivp[20], comp);
+	med5(pivp[-20], pivp[-10], piv, pivp[10], pivp[20], comp);
 	med5(right[-6], right[-7], right[-1], right[-8], right[-9], comp);
 	med5(right[-15], right[-14], right[0], right[-13], right[-12], comp);
-	med5(left[1], left[2], pivp[0], right[-1], right[0], comp);
+	med5(left[1], left[2], piv, right[-1], right[0], comp);
 
 	left += 3;
 	right -= 2;
 
-	T piv = *pivp;
 	*pivp = *outerleft;
 
 	T swbuf[SWSZ];

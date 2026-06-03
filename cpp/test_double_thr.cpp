@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <chrono>
 
+//#include "blqs.h"
 #include "blqs_thr.h"
 
 constexpr int SIZE = 50000000;
@@ -14,6 +15,16 @@ double time() {
     std::chrono::duration<double> diff = t - time0;
     return diff.count();
 }
+void prchksum() {
+	uint32_t* p = (uint32_t*)(void*)data;
+	size_t len = sizeof(data) / (sizeof(uint32_t));
+    uint32_t hash = 2166136261u;
+    for (size_t i = 0; i < len; i++) {
+        hash ^= p[i];
+        hash *= 16777619u;
+    }
+	printf("Checksum: %x\n", hash);
+}
 
 int main() {
 	double t0;
@@ -24,4 +35,5 @@ int main() {
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("Random:\t%.2fs\n", time() - t0);
+	prchksum();
 }
