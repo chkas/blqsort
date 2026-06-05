@@ -243,7 +243,7 @@ void heap_sort(T* left, T* right, Compare comp) {
 	ptrdiff_t n = right - left + 1;
 	if (n < 2) return;
 
-	for (std::ptrdiff_t i = n / 2; ; ) {
+	for (ptrdiff_t i = n / 2; ; ) {
 		if (i > 0) {
 			i--;
 			T k = std::move(left[i]);

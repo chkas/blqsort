@@ -161,7 +161,7 @@ void heap_sort(T* left, T* right, Compare comp) {
 	ptrdiff_t n = right - left + 1;
 	if (n < 2) return;
 
-	for (std::ptrdiff_t i = n / 2; ; ) {
+	for (ptrdiff_t i = n / 2; ; ) {
 		if (i > 0) {
 			i--;
 			T k = std::move(left[i]);
@@ -208,7 +208,9 @@ static T* partition_small(T* left, T* right, Compare comp) {
 		lwr += h; sw += !h;
 	}
 	std::move(swbuf, sw, lwr);
-	lwr -= 1; *outerleft = *lwr; *lwr = piv;
+	lwr -= 1;
+	*outerleft = *lwr;
+	*lwr = piv;
 	return lwr;
 }
 
@@ -230,7 +232,7 @@ static T* partition_large(T* left, T* right, Compare comp) {
 	*pivp = *outerleft;
 
 	while (comp(*left, piv)) left++;
-	if (left >= outerleft + 12) {
+	if (left >= outerleft + 32) {
 		// could be sorted
 		*pivp = piv;
 		for (T* p = outerleft + 1; p <= right; p++) {
@@ -242,6 +244,7 @@ static T* partition_large(T* left, T* right, Compare comp) {
 		return NULL;
 	}
 not_sorted:
+	while (comp(piv, *right)) right--;
 
 	T swbuf[SWSZ];
 	T *lwr = left, *rwr = right, *sw = swbuf;
@@ -273,7 +276,8 @@ not_sorted:
 		bool h = comp(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 	}
 	std::move(swbuf, sw, lwr);
-	*outerleft = *rwr; *rwr = piv;
+	*outerleft = *rwr;
+	*rwr = piv;
 	return rwr;
 }
 
