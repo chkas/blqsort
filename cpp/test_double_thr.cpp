@@ -9,8 +9,8 @@
 constexpr int SIZE = 50000000;
 double data[SIZE];
 
-static auto time0 = std::chrono::high_resolution_clock::now();
 double time() {
+	static auto time0 = std::chrono::high_resolution_clock::now();
     auto t = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = t - time0;
     return diff.count();

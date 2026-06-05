@@ -6,7 +6,7 @@ Performance results naturally depend on the underlying hardware. The following b
 | :--- | :--- | :--- |
 | std::sort | 1.33s | 5.56s |
 | pdqsort | 1.33s | 2.81s |
-| **blqsort** (single threaded) | 1.01s | 2.06s |
+| **blqsort** (single threaded) | 0.97s | 2.06s |
 
 For a fair comparison, the single-threaded version of `blqs` was used here. On an M1, the threaded versions are another factor of 3 to 4 faster. In terms of runtime, the C++ versions differ only very little from the C version.
 
@@ -50,7 +50,7 @@ For 2 to 12 elements, the algorithm uses custom sorting networks. This approach 
 
 ## C++
 
-For types with higher copy costs that are not `is_trivially_copyable` (such as strings), the buffer-based branchless approach becomes less efficient. In such cases, a **BlockQuicksort** variant is used instead. This processes only the element indices in a branchless manner and then moves the actual data with fewer swaps.
+For types with higher copy costs that are not `is_trivially_copyable` (such as strings), the buffer-based branchless approach becomes less efficient. In such cases, a **BlockQuicksort** variant is used instead. This processes only the element indices in a branchless manner and then moves the actual data with fewer swaps.Some ideas are from [pdqsort](https://github.com/orlp/pdqsort).
 
 ### Usage
 
@@ -131,7 +131,7 @@ Execution times for sorting 50 million of these `structs`.
 | :--- | :--- | :--- |
 | std::sort | 3.46s | 4.75s |
 | pdqsort | 3.46s | 4.72s |
-| **blqsort** | 0.97s | 2.20s |
+| **blqsort** | 0.96s | 2.20s |
 
 ### Links
 

@@ -18,7 +18,7 @@
 
 namespace blqs {
 
-constexpr int SMALLPART = 1024;
+constexpr int SMALLPART = 512;
 constexpr int SWSZ = 1024;
 constexpr int UNROLL = 16;
 

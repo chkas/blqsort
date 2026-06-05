@@ -23,103 +23,7 @@
 #include <stdatomic.h>
 #include <stdlib.h>
 
-static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right);
-static void BLQS(sorting_network)(BLQS_TYPE* left, int size);
-static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right);
-static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right);
-
 #define SMALLPART 1024
-
-static int BLQS(max_threads);
-static atomic_int BLQS(n_threads);
-
-static pthread_mutex_t BLQS(mtx) = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t BLQS(cond) = PTHREAD_COND_INITIALIZER;
-
-static void* BLQS(sort_thr)(void *arg);
-
-// ------------------------------------------------------------
-
-static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
-
-	while (1) {
-		ptrdiff_t partsz = right - left;
-
-		if (partsz <= 11) {
-			BLQS(sorting_network)(left, partsz);
-			return;
-		}
-
-		BLQS_TYPE* mid;
-
-		if (partsz <= SMALLPART)
-			mid = BLQS(partition_small)(left, right);
-		else {
-			mid = BLQS(partition)(left, right);
-
-			if ((mid - left) * 16 < partsz) {
-				BLQS(heap_sort)(left, right);
-				return;
-			}
-		}
-
-		if (mid - left > 1000000 && BLQS(n_threads) < BLQS(max_threads)) {
-
-			BLQS_TYPE** thrdata = malloc(2 * sizeof(BLQS_TYPE*));
-			if (thrdata) {
-
-				thrdata[0] = left;
-				thrdata[1] = mid - 1;
-
-				pthread_t thread;
-				BLQS(n_threads) += 1;
-
-				if (pthread_create(&thread, NULL, BLQS(sort_thr), thrdata) == 0) {
-					pthread_detach(thread);
-					left = mid + 1;
-					continue;
-				}
-
-				BLQS(n_threads) -= 1;
-				free(thrdata);
-			}
-		}
-
-		if (mid - left < right - mid) {
-			BLQS(sortr)(left, mid - 1);
-			left = mid + 1;
-		}
-		else {
-			BLQS(sortr)(mid + 1, right);
-			right = mid - 1;
-		}
-	}
-}
-
-// ------------------------------------------------------------
-
-static void* BLQS(sort_thr)(void *arg) {
-
-	BLQS_TYPE* left = ((BLQS_TYPE**)arg)[0];
-	BLQS_TYPE* right = ((BLQS_TYPE**)arg)[1];
-
-	free(arg);
-
-	BLQS(sortr)(left, right);
-
-	pthread_mutex_lock(&BLQS(mtx));
-
-	BLQS(n_threads) -= 1;
-
-	if (BLQS(n_threads) == 0)
-		pthread_cond_signal(&BLQS(cond));
-
-	pthread_mutex_unlock(&BLQS(mtx));
-
-	return NULL;
-}
-
-// ------------------------------------------------------------
 
 static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
@@ -391,6 +295,95 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
+}
+
+static int BLQS(max_threads);
+static atomic_int BLQS(n_threads);
+
+static pthread_mutex_t BLQS(mtx) = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t BLQS(cond) = PTHREAD_COND_INITIALIZER;
+
+static void* BLQS(sort_thr)(void *arg);
+
+// ------------------------------------------------------------
+
+static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
+
+	while (1) {
+		ptrdiff_t partsz = right - left;
+
+		if (partsz <= 11) {
+			BLQS(sorting_network)(left, partsz);
+			return;
+		}
+
+		BLQS_TYPE* mid;
+
+		if (partsz <= SMALLPART)
+			mid = BLQS(partition_small)(left, right);
+		else {
+			mid = BLQS(partition)(left, right);
+
+			if ((mid - left) * 16 < partsz) {
+				BLQS(heap_sort)(left, right);
+				return;
+			}
+		}
+
+		if (mid - left > 1000000 && BLQS(n_threads) < BLQS(max_threads)) {
+
+			BLQS_TYPE** thrdata = malloc(2 * sizeof(BLQS_TYPE*));
+			if (thrdata) {
+
+				thrdata[0] = left;
+				thrdata[1] = mid - 1;
+
+				pthread_t thread;
+				BLQS(n_threads) += 1;
+
+				if (pthread_create(&thread, NULL, BLQS(sort_thr), thrdata) == 0) {
+					pthread_detach(thread);
+					left = mid + 1;
+					continue;
+				}
+
+				BLQS(n_threads) -= 1;
+				free(thrdata);
+			}
+		}
+
+		if (mid - left < right - mid) {
+			BLQS(sortr)(left, mid - 1);
+			left = mid + 1;
+		}
+		else {
+			BLQS(sortr)(mid + 1, right);
+			right = mid - 1;
+		}
+	}
+}
+
+// ------------------------------------------------------------
+
+static void* BLQS(sort_thr)(void *arg) {
+
+	BLQS_TYPE* left = ((BLQS_TYPE**)arg)[0];
+	BLQS_TYPE* right = ((BLQS_TYPE**)arg)[1];
+
+	free(arg);
+
+	BLQS(sortr)(left, right);
+
+	pthread_mutex_lock(&BLQS(mtx));
+
+	BLQS(n_threads) -= 1;
+
+	if (BLQS(n_threads) == 0)
+		pthread_cond_signal(&BLQS(cond));
+
+	pthread_mutex_unlock(&BLQS(mtx));
+
+	return NULL;
 }
 
 #undef SWSZ

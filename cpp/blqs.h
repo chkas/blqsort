@@ -19,6 +19,12 @@
 
 namespace blqs {
 
+constexpr int SMALLPART = 512;
+constexpr int SWSZ = 1024;
+constexpr int UNROLL = 16;
+
+constexpr long BLSZ = 512;
+
 template<typename T, typename Compare>
 static inline void sort2(T& a, T& b, Compare comp) {
 	T x = a; T y = b;
@@ -167,10 +173,6 @@ static inline void med5(T& a, T& b, T& c, T& d, T& e, Compare comp) {
 	sort2(b, c, comp); sort2(c, e, comp);
 	sort2(b, c, comp);
 }
-
-constexpr int SMALLPART = 256;
-constexpr int SWSZ = 1024;
-constexpr int UNROLL = 16;
 
 template<typename T, typename Compare>
 static T* partition_small(T* left, T* right, Compare comp) {
@@ -330,8 +332,6 @@ static inline void med3(T* a, T* b, T* c, Compare comp) {
 
 template <typename T, typename Compare>
 void block_qsort(T* left0, T* right0, Compare comp) {
-
-	constexpr long BLSZ = 512;
 
 	while (right0 - left0 > 16) {
 

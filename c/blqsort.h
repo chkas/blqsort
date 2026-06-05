@@ -19,38 +19,7 @@
 #include <stddef.h>
 #include <string.h>
 
-static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right);
-static void BLQS(sorting_network)(BLQS_TYPE* left, int size);
-static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right);
-static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right);
-
 #define BLQS_SMALLPART 512
-
-static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
-	while (1) {
-		ptrdiff_t partsz = right - left;
-		if (partsz <= 11) {
-			BLQS(sorting_network)(left, partsz);
-			return;
-		}
-		BLQS_TYPE* mid;
-		if (partsz <= BLQS_SMALLPART) mid = BLQS(partition_small)(left, right);
-		else {
-			mid = BLQS(partition)(left, right);
-			if ((mid - left) * 16 < partsz) {
-				BLQS(heap_sort)(left, right);
-				return;
-			}
-		}
-		if (mid - left < right - mid) {
-			BLQS(sortr)(left, mid - 1);
-			left = mid + 1;
-		} else {
-			BLQS(sortr)(mid + 1, right);
-			right = mid - 1;
-		}
-	}
-}
 
 static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
@@ -313,6 +282,33 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	*rwr = piv;
 	return rwr;
 }
+
+static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
+	while (1) {
+		ptrdiff_t partsz = right - left;
+		if (partsz <= 11) {
+			BLQS(sorting_network)(left, partsz);
+			return;
+		}
+		BLQS_TYPE* mid;
+		if (partsz <= BLQS_SMALLPART) mid = BLQS(partition_small)(left, right);
+		else {
+			mid = BLQS(partition)(left, right);
+			if ((mid - left) * 16 < partsz) {
+				BLQS(heap_sort)(left, right);
+				return;
+			}
+		}
+		if (mid - left < right - mid) {
+			BLQS(sortr)(left, mid - 1);
+			left = mid + 1;
+		} else {
+			BLQS(sortr)(mid + 1, right);
+			right = mid - 1;
+		}
+	}
+}
+
 #undef SWSZ
 #undef UNROLL
 
