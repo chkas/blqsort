@@ -298,25 +298,37 @@ void blqsort(T* left, T* right, Compare comp) {
 			mid = partition_large(left, right, comp);
 			if (mid == NULL) return; // already sortiert
 
-			if ((mid - left) * 16 < partszm1 || (right - mid) * 16 < partszm1) {
-				heap_sort(left, mid - 1, comp);
+			if ((mid - left) * 16 < partszm1) {
+				blqsort(left, mid - 1, comp);
 
 				T piv = *mid;
 				mid += 1;
+				// collect duplicates
 				for (T* p = mid; p <= right; p++) {
 					if (!comp(piv, *p)) {
 						std::swap(*mid, *p);
 						mid++;
 					}
 				}
-				heap_sort(mid, right, comp);
-				return;
+				left = mid;
+				if (right - left < SMALLPART) {
+					blqsort(left, right, comp);
+					return;
+				}
+				// second chance before fallback to heapsort
+				mid = partition_large(left, right, comp);
+				if ((mid - left) * 16 < partszm1) {
+					heap_sort(left, mid - 1, comp);
+					heap_sort(mid + 1, right, comp);
+					return;
+				}
 			}
 		}
 		if (mid - left < right - mid) {
 			blqsort(left, mid - 1, comp);
 			left = mid + 1;
-		} else {
+		}
+		else {
 			blqsort(mid + 1, right, comp);
 			right = mid - 1;
 		}

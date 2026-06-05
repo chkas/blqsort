@@ -41,7 +41,7 @@ int main() {
 	blqs::sort(data, data + SIZE);
 	printf("Sorted:\t%.2fs\n", time() - t0);
 
-	for (int i = 0; i < 10; i++) std::swap(data[rand() % (SIZE / 10)], data[rand() % (SIZE / 10)]);
+	for (int i = 0; i < SIZE / 10; i++) data[i] = rand() / 1024.0;
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("Nearly sorted: %.2fs\n", time() - t0);
@@ -65,7 +65,7 @@ int main() {
 	std::sort(data, data + SIZE);
 	printf("Sorted:\t%.2fs\n", time() - t0);
 
-	for (int i = 0; i < 10; i++) std::swap(data[rand() % (SIZE / 10)], data[rand() % (SIZE / 10)]);
+	for (int i = 0; i < SIZE / 10; i++) data[i] = rand() / 1024.0;
 	t0 = time();
 	std::sort(data, data + SIZE);
 	printf("Nearly sorted: %.2fs\n", time() - t0);
