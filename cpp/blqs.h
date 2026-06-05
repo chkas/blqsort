@@ -145,24 +145,35 @@ static inline void sorting_network(T* l, int partsz_min1, Compare comp) {
 }
 
 template<typename T, typename Compare>
+inline void heap_sift_down(T* left, ptrdiff_t n, ptrdiff_t j, T& k, Compare& comp) {
+	while (j * 2 + 1 < n) {
+		ptrdiff_t child = j * 2 + 1;
+		if (child + 1 < n && comp(left[child], left[child + 1])) child++;
+		if (!comp(k, left[child])) break;
+		left[j] = std::move(left[child]);
+		j = child;
+	}
+	left[j] = std::move(k);
+}
+
+template<typename T, typename Compare>
 void heap_sort(T* left, T* right, Compare comp) {
-	long n = right - left + 1;
+	ptrdiff_t n = right - left + 1;
 	if (n < 2) return;
-	for (long i = n / 2; ; ) {
-		T k;
-		if (i > 0) k = left[--i];
+
+	for (std::ptrdiff_t i = n / 2; ; ) {
+		if (i > 0) {
+			i--;
+			T k = std::move(left[i]);
+			heap_sift_down(left, n, i, k, comp);
+		}
 		else {
-			n -= 1; if (n == 0) return;
-			k = left[n]; left[n] = left[0];
+			n--;
+			if (n == 0) return;
+			T k = std::move(left[n]);
+			left[n] = std::move(left[0]);
+			heap_sift_down(left, n, 0, k, comp);
 		}
-		long j = i;
-		while (j * 2 + 1 < n) {
-			long child = j * 2 + 1;
-			if (child + 1 < n && comp(left[child], left[child + 1])) child++;
-			if (!comp(k, left[child])) break;
-			left[j] = left[child]; j = child;
-		}
-		left[j] = k;
 	}
 }
 
