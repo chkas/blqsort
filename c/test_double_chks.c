@@ -11,7 +11,7 @@
 #define SIZE 50000000
 double data[SIZE];
 
-void prchksum() {
+void chksum_test(uint32_t expect) {
 	uint32_t* p = (uint32_t*)(void*)data;
 	size_t len = sizeof(data) / (sizeof(uint32_t));
     uint32_t hash = 2166136261u;
@@ -19,7 +19,7 @@ void prchksum() {
         hash ^= p[i];
         hash *= 16777619u;
     }
-	printf("Checksum: %x\n", hash);
+	if (hash != expect) printf("Checksum error %x\n", hash);
 }
 double ts(void) {
 	struct timeval tv;
@@ -36,7 +36,7 @@ int main() {
 	t0 = ts();
 	blqsort(data, SIZE);
 	printf("Random:\t%.2fs\n", ts() - t0);
-	prchksum();
+	chksum_test(0x1c5630e4);
 
 	t0 = ts();
 	blqsort(data, SIZE);
@@ -47,9 +47,10 @@ int main() {
 	blqsort(data, SIZE);
 	printf("Nearly sorted: %.2fs\n", ts() - t0);
 
+	srand(1);
 	for (int i = 0; i < SIZE; i++) data[i] = rand() % 1000;
 	t0 = ts();
 	blqsort(data, SIZE);
 	printf("Duplicates: %.2fs\n", ts() - t0);
-	prchksum();
+	chksum_test(0xc2b481c5);
 }

@@ -15,7 +15,7 @@ double time() {
     std::chrono::duration<double> diff = t - time0;
     return diff.count();
 }
-void prchksum() {
+void chksum_test(uint32_t expect) {
 	uint32_t* p = (uint32_t*)(void*)data;
 	size_t len = sizeof(data) / (sizeof(uint32_t));
     uint32_t hash = 2166136261u;
@@ -23,7 +23,7 @@ void prchksum() {
         hash ^= p[i];
         hash *= 16777619u;
     }
-	printf("Checksum: %x\n", hash);
+	if (hash != expect) printf("Checksum error %x\n", hash);
 }
 
 int main() {
@@ -35,5 +35,12 @@ int main() {
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("Random:\t%.2fs\n", time() - t0);
-	prchksum();
+	chksum_test(0x1c5630e4);
+
+	srand(1);
+	for (int i = 0; i < SIZE; i++) data[i] = rand() % 1000;
+	t0 = time();
+	blqs::sort(data, data + SIZE);
+	printf("Duplicates: %.2fs\n", time() - t0);
+	chksum_test(0xc2b481c5);
 }
