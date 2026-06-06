@@ -454,10 +454,12 @@ void sort(T* first, T* last, Compare comp = Compare()) {
 
 	if (last - first < 2) return;
 
-	constexpr bool copy_is_cheap =
-		std::is_trivially_copyable<T>::value && sizeof(T) <= 16;
+	constexpr bool cheap =
+		std::is_trivially_copyable_v<T> &&
+		sizeof(T) <= 16 &&
+		std::is_default_constructible_v<T>;
 
-	if constexpr (copy_is_cheap) {
+	if constexpr (cheap) {
 		blqsort(first, last - 1, comp);
 	}
 	else {

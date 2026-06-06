@@ -635,7 +635,12 @@ inline void sort(T* begin, T* end, Compare comp = Compare()) {
 	max_threads = hw > 0 ? hw * 2 : 8;
 	n_threads = 1;
 
-	if constexpr (std::is_trivially_copyable<T>::value) {
+	constexpr bool cheap =
+		std::is_trivially_copyable_v<T> &&
+		sizeof(T) <= 16 &&
+		std::is_default_constructible_v<T>;
+
+	if constexpr (cheap) {
 		try {
 			std::thread(sort_thr<T, Compare>, begin, end - 1, comp).detach();
 		}
