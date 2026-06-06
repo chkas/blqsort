@@ -7,14 +7,15 @@
 
 #include <cstddef>
 #include <cstring>
+#include <type_traits>
+#include <functional>
+#include <utility>
+
 #include <atomic>
+#include <chrono>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <functional>
-#include <type_traits>
-#include <algorithm>
-#include <utility>
 
 namespace blqs {
 
@@ -22,15 +23,7 @@ constexpr int SMALLPART = 512;
 constexpr int SWSZ = 1024;
 constexpr int UNROLL = 16;
 
-constexpr ptrdiff_t THREAD_MIN_TRIVIAL = 1000000;
-constexpr ptrdiff_t THREAD_MIN_OBJECT  = 250000;
 constexpr int BLSZ = 512;
-
-static inline unsigned max_threads;
-static inline std::atomic<int> n_threads{0};
-
-static inline std::mutex mtx;
-static inline std::condition_variable cond;
 
 template<typename T, typename Compare>
 static inline void sort2(T& a, T& b, Compare comp) {
@@ -271,7 +264,7 @@ static inline void med5(T& a, T& b, T& c, T& d, T& e, Compare comp) {
 }
 
 template<typename T, typename Compare>
-static inline T* partition_small(T* left, T* right, Compare comp) {
+static T* partition_small(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 
@@ -282,189 +275,92 @@ static inline T* partition_small(T* left, T* right, Compare comp) {
 	left[1] = l1; left[2] = l2;
 	right[-1] = r1; *right = r0;
 
-	left += 3;
-	right -= 2;
-
+	left += 3; right -= 2;
 	*pivp = *outerleft;
 
 	T swbuf[SMALLPART];
-	T* sw = swbuf;
-	T* lwr = left;
-
+	T *sw = swbuf, *lwr = left;
 	while (left <= right) {
 		bool h = comp(*left, piv);
 		*lwr = *sw = *left++;
-		lwr += h;
-		sw += !h;
+		lwr += h; sw += !h;
 	}
-
-	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
-
+	std::move(swbuf, sw, lwr);
 	lwr -= 1;
 	*outerleft = *lwr;
 	*lwr = piv;
-
 	return lwr;
 }
 
 template<typename T, typename Compare>
-static inline T* partition(T* left, T* right, Compare comp) {
+static T* partition_large(T* left, T* right, Compare comp) {
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 
 	T piv = *pivp;
 
-	med5(left[3], left[4], left[1], left[5], left[6], comp);
-	med5(left[11], left[12], left[2], left[13], left[14], comp);
-	med5(pivp[-20], pivp[-10], piv, pivp[10], pivp[20], comp);
-	med5(right[-6], right[-7], right[-1], right[-8], right[-9], comp);
-	med5(right[-15], right[-14], right[0], right[-13], right[-12], comp);
-	med5(left[1], left[2], piv, right[-1], right[0], comp);
+	med5(left[1], left[2], left[3], left[4], left[5], comp);
+	med5(left[21], left[22], left[23], left[24], left[25], comp);
+	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2], comp);
+	med5(right[-14], right[-13], right[-12], right[-11], right[-10], comp);
+	med5(right[-4], right[-3], right[-2], right[-1], right[0], comp);
+	med5(left[3], left[23], piv, right[-12], right[-2], comp);
 
-	left += 3;
-	right -= 2;
-
+	left += 1;
 	*pivp = *outerleft;
 
-	T swbuf[SWSZ];
+	while (comp(*left, piv)) left++;
+	if (left >= outerleft + 32) {
+		// could be sorted
+		*pivp = piv;
+		for (T* p = outerleft + 1; p <= right; p++) {
+			if (comp(*p, *(p - 1))) {
+				*pivp = *outerleft;
+				goto not_sorted;
+			}
+		}
+		return NULL;
+	}
+not_sorted:
+	while (comp(piv, *right)) right--;
 
-	T* lwr = left;
-	T* rwr = right;
-	T* sw = swbuf;
+	T swbuf[SWSZ];
+	T *lwr = left, *rwr = right, *sw = swbuf;
 
 	while (sw < swbuf + SWSZ - UNROLL && left <= right - UNROLL) {
 		for (int i = UNROLL; i--;) {
-			bool h = comp(*right, piv);
-			*rwr = *sw = *right--;
-			rwr -= !h;
-			sw += h;
+			bool h = comp(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 		}
 	}
-
 	while (sw < swbuf + SWSZ - UNROLL && left <= right) {
-		bool h = comp(*right, piv);
-		*rwr = *sw = *right--;
-		rwr -= !h;
-		sw += h;
+		bool h = comp(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 	}
-
 	while (left <= right - UNROLL) {
 		while (rwr > right + UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				bool h = comp(*left, piv);
-				*lwr = *rwr = *left++;
-				lwr += h;
-				rwr -= !h;
+				bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 			}
 		}
-
 		while (lwr < left - UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				bool h = comp(*right, piv);
-				*rwr = *lwr = *right--;
-				rwr -= !h;
-				lwr += h;
+				bool h = comp(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 			}
 		}
 	}
-
 	while (rwr > right && left <= right) {
-		bool h = comp(*left, piv);
-		*lwr = *rwr = *left++;
-		lwr += h;
-		rwr -= !h;
+		bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 	}
-
 	while (left <= right) {
-		bool h = comp(*right, piv);
-		*rwr = *lwr = *right--;
-		rwr -= !h;
-		lwr += h;
+		bool h = comp(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 	}
-
-	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
-
+	std::move(swbuf, sw, lwr);
 	*outerleft = *rwr;
 	*rwr = piv;
-
 	return rwr;
 }
 
-template<typename T, typename Compare>
-static inline void sortr(T* left, T* right, Compare comp);
-
-template<typename T, typename Compare>
-static inline void sort_thr(T* left, T* right, Compare comp);
-
-template<typename T, typename Compare>
-static inline void block_qsort(T* left0, T* right0, Compare comp);
-
-template<typename T, typename Compare>
-static inline void block_sort_thr(T* left, T* right, Compare comp);
-
 // ------------------------------------------------------------
-// trivial copyable threaded branchless path
-// ------------------------------------------------------------
-
-template<typename T, typename Compare>
-static inline void sort_thr(T* left, T* right, Compare comp) {
-	sortr(left, right, comp);
-
-	std::lock_guard<std::mutex> lock(mtx);
-	if (--n_threads == 0) cond.notify_one();
-}
-
-template<typename T, typename Compare>
-static inline void sortr(T* left, T* right, Compare comp) {
-	while (true) {
-		if (left >= right) return;
-
-		ptrdiff_t partsz = right - left;
-
-		if (partsz <= 11) {
-			sorting_network(left, (int)partsz, comp);
-			return;
-		}
-
-		T* mid;
-		if (partsz <= SMALLPART) {
-			mid = partition_small(left, right, comp);
-		}
-		else {
-			mid = partition(left, right, comp);
-
-			if ((mid - left) * 16 < partsz) {
-				heap_sort(left, right, comp);
-				return;
-			}
-		}
-
-		if ((mid - left) > THREAD_MIN_TRIVIAL && n_threads < (int)max_threads) {
-			n_threads++;
-
-			try {
-				std::thread(sort_thr<T, Compare>, left, mid - 1, comp).detach();
-				left = mid + 1;
-				continue;
-			}
-			catch (...) {
-				n_threads--;
-			}
-		}
-
-		if (mid - left < right - mid) {
-			sortr(left, mid - 1, comp);
-			left = mid + 1;
-		}
-		else {
-			sortr(mid + 1, right, comp);
-			right = mid - 1;
-		}
-	}
-}
-
-// ------------------------------------------------------------
-// non-trivial copyable path: threaded block quicksort
+// for non-trivial copyable path
 // ------------------------------------------------------------
 
 template<typename T, typename Compare>
@@ -489,6 +385,109 @@ static inline void med3(T* a, T* b, T* c, Compare comp) {
 	if (comp(*b, *a)) std::iter_swap(a, b);
 	if (comp(*c, *a)) std::iter_swap(a, c);
 	if (comp(*c, *b)) std::iter_swap(b, c);
+}
+
+// ------------------------------------------------------------
+// threads
+// ------------------------------------------------------------
+
+constexpr ptrdiff_t THREAD_MIN_TRIVIAL = 1000000;
+constexpr ptrdiff_t THREAD_MIN_OBJECT  = 250000;
+
+template<typename T, typename Compare>
+static inline void blqsort(T* left, T* right, Compare comp);
+
+template<typename T, typename Compare>
+static inline void sort_thr(T* left, T* right, Compare comp);
+
+template<typename T, typename Compare>
+static inline void block_qsort(T* left0, T* right0, Compare comp);
+
+template<typename T, typename Compare>
+static inline void block_sort_thr(T* left, T* right, Compare comp);
+
+static inline unsigned max_threads;
+static inline std::atomic<int> n_threads{0};
+
+static inline std::mutex mtx;
+static inline std::condition_variable cond;
+
+
+template<typename T, typename Compare>
+static inline void sort_thr(T* left, T* right, Compare comp) {
+	blqsort(left, right, comp);
+
+	std::lock_guard<std::mutex> lock(mtx);
+	if (--n_threads == 0) cond.notify_one();
+}
+
+template<typename T, typename Compare>
+static inline void blqsort(T* left, T* right, Compare comp) {
+	while (1) {
+		ptrdiff_t partszm1 = right - left;
+		T* mid;
+
+		if (partszm1 <= SMALLPART) {
+			if (partszm1 <= 11) {
+				sorting_network(left, (int)partszm1, comp);
+				return;
+			}
+			mid = partition_small(left, right, comp);
+		}
+		else {
+			mid = partition_large(left, right, comp);
+			if (mid == NULL) return; // already sortiert
+
+			if ((mid - left) * 16 < partszm1) {
+				blqsort(left, mid - 1, comp);
+
+				T piv = *mid;
+				mid += 1;
+				// collect duplicates
+				for (T* p = mid; p <= right; p++) {
+					if (!comp(piv, *p)) {
+						std::swap(*mid, *p);
+						mid++;
+					}
+				}
+				left = mid;
+				if (right - left < SMALLPART) {
+					blqsort(left, right, comp);
+					return;
+				}
+				// second chance before fallback to heapsort
+				mid = partition_large(left, right, comp);
+				if ((mid - left) * 16 < partszm1) {
+					heap_sort(left, mid - 1, comp);
+					heap_sort(mid + 1, right, comp);
+					return;
+				}
+			}
+		}
+
+
+		if ((mid - left) > THREAD_MIN_TRIVIAL && n_threads < (int)max_threads) {
+			n_threads++;
+
+			try {
+				std::thread(sort_thr<T, Compare>, left, mid - 1, comp).detach();
+				left = mid + 1;
+				continue;
+			}
+			catch (...) {
+				n_threads--;
+			}
+		}
+
+		if (mid - left < right - mid) {
+			blqsort(left, mid - 1, comp);
+			left = mid + 1;
+		}
+		else {
+			blqsort(mid + 1, right, comp);
+			right = mid - 1;
+		}
+	}
 }
 
 template<typename T, typename Compare>
@@ -576,8 +575,8 @@ static inline void block_qsort(T* left0, T* right0, Compare comp) {
 		ptrdiff_t szmin = szl < szr ? szl : szr;
 
 		if (szmin * 16 < right0 - left0) {
-			if (szl > 1) heap_sort(left0, right - 1, comp);
-			if (szr > 1) heap_sort(right + 1, right0, comp);
+			heap_sort(left0, right - 1, comp);
+			heap_sort(right + 1, right0, comp);
 			return;
 		}
 
@@ -634,7 +633,6 @@ inline void sort(T* begin, T* end, Compare comp = Compare()) {
 
 	unsigned hw = std::thread::hardware_concurrency();
 	max_threads = hw > 0 ? hw * 2 : 8;
-
 	n_threads = 1;
 
 	if constexpr (std::is_trivially_copyable<T>::value) {
@@ -658,6 +656,7 @@ inline void sort(T* begin, T* end, Compare comp = Compare()) {
 	cond.wait(lock, [] {
 		return n_threads == 0;
 	});
+
 }
 }
 

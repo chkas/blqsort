@@ -23,7 +23,7 @@
 #include <stdatomic.h>
 #include <stdlib.h>
 
-#define SMALLPART 1024
+#define BLQS_SMALLPART 512
 
 static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
@@ -176,6 +176,9 @@ static void BLQS(sorting_network)(BLQS_TYPE* left, int n) {
 	sort2(b,c); \
 } while(0)
 
+#define SWSZ 1024
+#define UNROLL 16
+
 static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
@@ -192,12 +195,12 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	*pivp = *outerleft;
 
-	BLQS_TYPE swbuf[SMALLPART];
+	BLQS_TYPE swbuf[BLQS_SMALLPART];
 	BLQS_TYPE* sw = swbuf;
 	BLQS_TYPE* lwr = left;
 
 	while (left <= right) {
-		unsigned h = BLQS_CMP(*left, piv);
+		int h = BLQS_CMP(*left, piv);
 		*lwr = *sw = *left++;
 		lwr += h;
 		sw += !h;
@@ -212,9 +215,6 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	return lwr;
 }
 
-#define SWSZ 1024
-#define UNROLL 16
-
 static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE* outerleft = left;
@@ -222,76 +222,61 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE piv = *pivp;
 
-	med5(left[3], left[4], left[1], left[5], left[6]);
-	med5(left[11], left[12], left[2], left[13], left[14]);
-	med5(pivp[-20], pivp[-10], piv, pivp[10], pivp[20]);
-	med5(right[-6], right[-7], right[-1], right[-8], right[-9]);
-	med5(right[-15], right[-14], right[0], right[-13], right[-12]);
-	med5(left[1], left[2], piv, right[-1], right[0]);
+	med5(left[1], left[2], left[3], left[4], left[5]);
+	med5(left[21], left[22], left[23], left[24], left[25]);
+	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2]);
+	med5(right[-14], right[-13], right[-12], right[-11], right[-10]);
+	med5(right[-4], right[-3], right[-2], right[-1], right[0]);
+	med5(left[3], left[23], piv, right[-12], right[-2]);
 
-	left += 3;
-	right -= 2;
-
+	left += 1;
 	*pivp = *outerleft;
 
-	BLQS_TYPE swbuf[SWSZ];
+	while (BLQS_CMP(*left, piv)) left++;
+	if (left >= outerleft + 32) {
+		// could be sorted
+		*pivp = piv;
+		for (BLQS_TYPE* p = outerleft + 1; p <= right; p++) {
+			if (BLQS_CMP(*p, *(p - 1))) {
+				*pivp = *outerleft;
+				goto not_sorted;
+			}
+		}
+		return NULL;
+	}
+not_sorted:
+	while (BLQS_CMP(piv, *right)) right--;
 
-	BLQS_TYPE* lwr = left;
-	BLQS_TYPE* rwr = right;
-	BLQS_TYPE* sw = swbuf;
+	BLQS_TYPE swbuf[SWSZ];
+	BLQS_TYPE *lwr = left, *rwr = right, *sw = swbuf;
 
 	while (sw < swbuf + SWSZ - UNROLL && left <= right - UNROLL) {
 		for (int i = UNROLL; i--;) {
-			unsigned h = BLQS_CMP(*right, piv);
-			*rwr = *sw = *right--;
-			rwr -= !h;
-			sw += h;
+			int h = BLQS_CMP(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 		}
 	}
-
 	while (sw < swbuf + SWSZ - UNROLL && left <= right) {
-		unsigned h = BLQS_CMP(*right, piv);
-		*rwr = *sw = *right--;
-		rwr -= !h;
-		sw += h;
+		int h = BLQS_CMP(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 	}
-
 	while (left <= right - UNROLL) {
 		while (rwr > right + UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				unsigned h = BLQS_CMP(*left, piv);
-				*lwr = *rwr = *left++;
-				lwr += h;
-				rwr -= !h;
+				int h = BLQS_CMP(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 			}
 		}
-
 		while (lwr < left - UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				unsigned h = BLQS_CMP(*right, piv);
-				*rwr = *lwr = *right--;
-				rwr -= !h;
-				lwr += h;
+				int h = BLQS_CMP(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 			}
 		}
 	}
-
 	while (rwr > right && left <= right) {
-		unsigned h = BLQS_CMP(*left, piv);
-		*lwr = *rwr = *left++;
-		lwr += h;
-		rwr -= !h;
+		int h = BLQS_CMP(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 	}
-
 	while (left <= right) {
-		unsigned h = BLQS_CMP(*right, piv);
-		*rwr = *lwr = *right--;
-		rwr -= !h;
-		lwr += h;
+		int h = BLQS_CMP(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 	}
-
 	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
-
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
@@ -319,7 +304,7 @@ static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 		BLQS_TYPE* mid;
 
-		if (partsz <= SMALLPART)
+		if (partsz <= BLQS_SMALLPART)
 			mid = BLQS(partition_small)(left, right);
 		else {
 			mid = BLQS(partition)(left, right);
@@ -401,7 +386,7 @@ static void* BLQS(sort_thr)(void *arg) {
 #undef sort10
 #undef sort11
 #undef sort12
-#undef SMALLPART
+#undef BLQS_SMALLPART
 
 // ------------------------  public API  -----------------------------
 

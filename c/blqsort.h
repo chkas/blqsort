@@ -23,7 +23,7 @@
 
 static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
-	long n = right - left + 1;
+	ptrdiff_t n = right - left + 1;
 	if (n < 2) return;
 	for (long i = n / 2, j;;) {
 		BLQS_TYPE k;
@@ -140,8 +140,8 @@ static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	sort2(b,c); sort2(d,e); sort2(f,g); sort2(h,i); sort2(j,k); \
 } while (0)
 
-static void BLQS(sorting_network)(BLQS_TYPE* l, int partsz_min_1) {
-	switch (partsz_min_1) {
+static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
+	switch (partszm1_min_1) {
 	case 11: sort12(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11]); break;
 	case 10: sort11(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10]); break;
 	case 9: sort10(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9]); break;
@@ -187,7 +187,7 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* lwr = left;
 
 	while (left <= right) {
-		unsigned h = BLQS_CMP(*left, piv);
+		int h = BLQS_CMP(*left, piv);
 		*lwr = *sw = *left++;
 		lwr += h;
 		sw += !h;
@@ -209,75 +209,61 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE piv = *pivp;
 
-	med5(left[3], left[4], left[1], left[5], left[6]);
-	med5(left[11], left[12], left[2], left[13], left[14]);
-	med5(pivp[-20], pivp[-10], piv, pivp[10], pivp[20]);
-	med5(right[-6], right[-7], right[-1], right[-8], right[-9]);
-	med5(right[-15], right[-14], right[0], right[-13], right[-12]);
-	med5(left[1], left[2], piv, right[-1], right[0]);
+	med5(left[1], left[2], left[3], left[4], left[5]);
+	med5(left[21], left[22], left[23], left[24], left[25]);
+	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2]);
+	med5(right[-14], right[-13], right[-12], right[-11], right[-10]);
+	med5(right[-4], right[-3], right[-2], right[-1], right[0]);
+	med5(left[3], left[23], piv, right[-12], right[-2]);
 
-	left += 3;
-	right -= 2;
-
+	left += 1;
 	*pivp = *outerleft;
 
+	while (BLQS_CMP(*left, piv)) left++;
+	if (left >= outerleft + 32) {
+		// could be sorted
+		*pivp = piv;
+		for (BLQS_TYPE* p = outerleft + 1; p <= right; p++) {
+			if (BLQS_CMP(*p, *(p - 1))) {
+				*pivp = *outerleft;
+				goto not_sorted;
+			}
+		}
+		return NULL;
+	}
+not_sorted:
+	while (BLQS_CMP(piv, *right)) right--;
+
 	BLQS_TYPE swbuf[SWSZ];
-	BLQS_TYPE* lwr = left;
-	BLQS_TYPE* rwr = right;
-	BLQS_TYPE* sw = swbuf;
+	BLQS_TYPE *lwr = left, *rwr = right, *sw = swbuf;
 
 	while (sw < swbuf + SWSZ - UNROLL && left <= right - UNROLL) {
 		for (int i = UNROLL; i--;) {
-			unsigned h = BLQS_CMP(*right, piv);
-			*rwr = *sw = *right--;
-			rwr -= !h;
-			sw += h;
+			int h = BLQS_CMP(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 		}
 	}
-
 	while (sw < swbuf + SWSZ - UNROLL && left <= right) {
-		unsigned h = BLQS_CMP(*right, piv);
-		*rwr = *sw = *right--;
-		rwr -= !h;
-		sw += h;
+		int h = BLQS_CMP(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 	}
-
 	while (left <= right - UNROLL) {
 		while (rwr > right + UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				unsigned h = BLQS_CMP(*left, piv);
-				*lwr = *rwr = *left++;
-				lwr += h;
-				rwr -= !h;
+				int h = BLQS_CMP(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 			}
 		}
-
 		while (lwr < left - UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
-				unsigned h = BLQS_CMP(*right, piv);
-				*rwr = *lwr = *right--;
-				rwr -= !h;
-				lwr += h;
+				int h = BLQS_CMP(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 			}
 		}
 	}
-
 	while (rwr > right && left <= right) {
-		unsigned h = BLQS_CMP(*left, piv);
-		*lwr = *rwr = *left++;
-		lwr += h;
-		rwr -= !h;
+		int h = BLQS_CMP(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 	}
-
 	while (left <= right) {
-		unsigned h = BLQS_CMP(*right, piv);
-		*rwr = *lwr = *right--;
-		rwr -= !h;
-		lwr += h;
+		int h = BLQS_CMP(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 	}
-
 	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
-
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
@@ -285,18 +271,44 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	while (1) {
-		ptrdiff_t partsz = right - left;
-		if (partsz <= 11) {
-			BLQS(sorting_network)(left, partsz);
+		ptrdiff_t partszm1 = right - left;
+		if (partszm1 <= 11) {
+			BLQS(sorting_network)(left, partszm1);
 			return;
 		}
 		BLQS_TYPE* mid;
-		if (partsz <= BLQS_SMALLPART) mid = BLQS(partition_small)(left, right);
+		if (partszm1 <= BLQS_SMALLPART) mid = BLQS(partition_small)(left, right);
 		else {
 			mid = BLQS(partition)(left, right);
-			if ((mid - left) * 16 < partsz) {
-				BLQS(heap_sort)(left, right);
-				return;
+			if (mid == NULL) return; // already sortiert
+
+
+			if ((mid - left) * 16 < partszm1) {
+				BLQS(sortr)(left, mid - 1);
+
+				BLQS_TYPE piv = *mid;
+				mid += 1;
+				// collect duplicates
+				for (BLQS_TYPE* p = mid; p <= right; p++) {
+					if (!BLQS_CMP(piv, *p)) {
+						BLQS_TYPE h = *mid;
+						*mid = *p;
+						*p = h;
+						mid++;
+					}
+				}
+				left = mid;
+				if (right - left < BLQS_SMALLPART) {
+					BLQS(sortr)(left, right);
+					return;
+				}
+				// second chance before fallback to heapsort
+				mid = BLQS(partition)(left, right);
+				if ((mid - left) * 16 < partszm1) {
+					BLQS(heap_sort)(left, mid - 1);
+					BLQS(heap_sort)(mid + 1, right);
+					return;
+				}
 			}
 		}
 		if (mid - left < right - mid) {
