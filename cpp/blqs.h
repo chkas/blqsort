@@ -388,7 +388,7 @@ void block_qsort(T* left0, T* right0, Compare comp) {
 
 		int nleft = 0;
 		int nright = 0;
-		int left_offs, right_offs;
+		int left_offs = 0, right_offs = 0;	// Initialization to satisfy sanitizers
 
 		while (right >= left) {
 			int blsz = std::min(BLSZ, right - left + 1);
