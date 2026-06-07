@@ -34,12 +34,12 @@ int main() {
 	for (int i = 0; i < SIZE; i++) data[i] = rand() / 1024.0;
 	t0 = time();
 	blqs::sort(data, data + SIZE);
-	printf("Random:\t%.2fs\n", time() - t0);
+	printf("Random: %.2fs\n", time() - t0);
 	chksum_test(0x1c5630e4);
 
 	t0 = time();
 	blqs::sort(data, data + SIZE);
-	printf("Sorted:\t%.2fs\n", time() - t0);
+	printf("Sorted: %.2fs\n", time() - t0);
 
 	for (int i = 0; i < SIZE / 10; i++) data[i] = rand() / 1024.0;
 	t0 = time();
@@ -59,12 +59,12 @@ int main() {
 	for (int i = 0; i < SIZE; i++) data[i] = rand() / 1024.0;
 	t0 = time();
 	std::sort(data, data + SIZE);
-	printf("Random:\t%.2fs\n", time() - t0);
+	printf("Random: %.2fs\n", time() - t0);
 	chksum_test(0x1c5630e4);
 
 	t0 = time();
 	std::sort(data, data + SIZE);
-	printf("Sorted:\t%.2fs\n", time() - t0);
+	printf("Sorted: %.2fs\n", time() - t0);
 
 	for (int i = 0; i < SIZE / 10; i++) data[i] = rand() / 1024.0;
 	t0 = time();

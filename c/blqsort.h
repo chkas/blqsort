@@ -19,7 +19,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#define BLQS_SMALLPART 512
+#define BLQS_SMALLPART 768
 
 static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
@@ -140,8 +140,74 @@ static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	sort2(b,c); sort2(d,e); sort2(f,g); sort2(h,i); sort2(j,k); \
 } while (0)
 
+#define sort13(a,b,c,d,e,f,g,h,i,j,k,l,m) do { \
+	sort2(a,m);sort2(b,k);sort2(c,j);sort2(d,h);sort2(f,l);sort2(g,i);\
+	sort2(b,g);sort2(c,d);sort2(e,l);sort2(h,j);sort2(i,k);\
+	sort2(a,e);sort2(b,c);sort2(d,g);sort2(h,i);sort2(j,k);sort2(l,m);\
+	sort2(e,g);sort2(f,j);sort2(i,l);sort2(k,m);\
+	sort2(a,f);sort2(d,i);sort2(e,h);sort2(g,l);sort2(j,k);\
+	sort2(a,b);sort2(c,f);sort2(g,j);sort2(h,i);sort2(k,l);\
+	sort2(b,d);sort2(c,e);sort2(f,g);sort2(j,k);\
+	sort2(b,c);sort2(d,e);sort2(f,h);sort2(g,i);\
+	sort2(c,d);sort2(e,f);sort2(g,h);sort2(i,j);\
+	sort2(d,e);sort2(f,g);\
+} while (0)
+
+#define sort14(a,b,c,d,e,f,g,h,i,j,k,l,m,n) do { \
+	sort2(a,b);sort2(c,d);sort2(e,f);sort2(g,h);sort2(i,j);sort2(k,l);sort2(m,n);\
+	sort2(a,c);sort2(b,d);sort2(e,i);sort2(f,j);sort2(k,m);sort2(l,n);\
+	sort2(a,e);sort2(b,c);sort2(d,h);sort2(f,i);sort2(g,k);sort2(j,n);sort2(l,m);\
+	sort2(a,g);sort2(b,f);sort2(d,j);sort2(e,k);sort2(h,n);sort2(i,m);\
+	sort2(c,k);sort2(d,l);sort2(e,g);sort2(h,j);\
+	sort2(b,d);sort2(c,i);sort2(f,l);sort2(g,h);sort2(k,m);\
+	sort2(b,e);sort2(c,g);sort2(d,f);sort2(h,l);sort2(i,k);sort2(j,m);\
+	sort2(c,e);sort2(d,g);sort2(f,i);sort2(h,k);sort2(j,l);\
+	sort2(d,e);sort2(f,g);sort2(h,i);sort2(j,k);\
+	sort2(g,h);\
+} while(0)
+
+#define sort15(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) do { \
+	sort2(b,c);sort2(d,k);sort2(e,o);sort2(f,i);sort2(g,n);sort2(h,m);sort2(j,l);\
+	sort2(a,o);sort2(b,f);sort2(c,i);sort2(d,h);sort2(g,j);sort2(k,m);sort2(l,n);\
+	sort2(a,h);sort2(b,g);sort2(c,j);sort2(e,k);sort2(f,l);sort2(i,n);sort2(m,o);\
+	sort2(a,g);sort2(c,e);sort2(d,f);sort2(h,l);sort2(i,k);sort2(j,m);sort2(n,o);\
+	sort2(a,d);sort2(b,c);sort2(e,h);sort2(f,j);sort2(g,i);sort2(k,l);sort2(m,n);\
+	sort2(a,b);sort2(c,d);sort2(e,g);sort2(h,j);sort2(k,m);sort2(l,n);\
+	sort2(b,c);sort2(d,f);sort2(i,k);sort2(l,m);\
+	sort2(d,e);sort2(f,g);sort2(h,i);sort2(j,k);\
+	sort2(c,d);sort2(e,f);sort2(g,h);sort2(i,j);sort2(k,l);\
+	sort2(f,g);sort2(h,i);\
+} while(0)
+
+#define sort16(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) do { \
+	sort2(a,n);sort2(b,m);sort2(c,p);sort2(d,o);sort2(e,i);\
+	sort2(f,g);sort2(h,l);sort2(j,k);\
+	sort2(a,f);sort2(b,h);sort2(c,j);sort2(d,e);sort2(g,n);\
+	sort2(i,o);sort2(k,p);sort2(l,m);\
+	sort2(a,b);sort2(c,d);sort2(e,f);sort2(g,i);sort2(h,j);\
+	sort2(k,l);sort2(m,n);sort2(o,p);\
+	sort2(a,c);sort2(b,d);sort2(e,k);sort2(f,l);sort2(g,h);\
+	sort2(i,j);sort2(m,o);sort2(n,p);\
+	sort2(b,c);sort2(d,m);sort2(e,g);sort2(f,h);sort2(i,k);\
+	sort2(j,l);sort2(n,o);\
+	sort2(b,e);sort2(c,g);sort2(f,i);sort2(h,k);sort2(j,n);\
+	sort2(l,o);\
+	sort2(c,e);sort2(d,g);sort2(j,m);sort2(l,n);\
+	sort2(d,f);sort2(g,i);sort2(h,j);sort2(k,m);\
+	sort2(d,e);sort2(f,g);sort2(h,i);sort2(j,k);sort2(l,m);\
+	sort2(g,h);sort2(i,j);\
+} while (0)
+
 static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
 	switch (partszm1_min_1) {
+	case 15: sort16(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+			l[12],l[13],l[14],l[15]); break;
+	case 14: sort15(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+				l[12],l[13],l[14]); break;
+	case 13: sort14(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+			l[12],l[13]); break;
+	case 12: sort13(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+			l[12]); break;
 	case 11: sort12(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11]); break;
 	case 10: sort11(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10]); break;
 	case 9: sort10(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9]); break;
@@ -166,25 +232,34 @@ static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
 #define SWSZ 1024
 #define UNROLL 16
 
+#define med7(a, b, c, d, e, f, g) do { \
+	sort2(a, b); sort2(c, d); sort2(a, c); \
+	sort2(b, d); sort2(b, c); sort2(e, f); \
+	sort2(e, g); sort2(a, e); \
+	sort2(b, f); sort2(c, g); sort2(b, e); \
+	sort2(c, e); \
+	sort2(d, f); sort2(d, e); \
+} while(0)
+
 static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* outerleft = left;
-	BLQS_TYPE* pivp = left + (right - left) / 2;
+	BLQS_TYPE* pivp = left + 8;
 
-	BLQS_TYPE l1 = left[1], l2 = left[2];
 	BLQS_TYPE piv = *pivp;
-	BLQS_TYPE r1 = right[-1], r0 = *right;
-	med5(l1, l2, piv, r1, r0);
-	left[1] = l1; left[2] = l2;
-	right[-1] = r1; *right = r0;
-
-	left += 3;
-	right -= 2;
+	BLQS_TYPE l1 = left[1], l2 = left[2], l3 = left[3];
+	BLQS_TYPE r2 = right[-2], r1 = right[-1], r0 = *right;
+	med7(l1, l2, l3, piv, r2, r1, r0);
+	left[1] = l1; left[2] = l2; left[3] = l3;
+	right[-2] = r2; right[-1] = r1; *right = r0;
+	left += 4;
+	right -= 3;
 
 	*pivp = *outerleft;
 
 	BLQS_TYPE swbuf[BLQS_SMALLPART];
 	BLQS_TYPE* sw = swbuf;
 	BLQS_TYPE* lwr = left;
+
 
 	while (left <= right) {
 		int h = BLQS_CMP(*left, piv);
@@ -210,13 +285,16 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE piv = *pivp;
 
 	med5(left[1], left[2], left[3], left[4], left[5]);
+	med5(left[11], left[12], left[13], left[14], left[15]);
 	med5(left[21], left[22], left[23], left[24], left[25]);
 	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2]);
+	med5(right[-24], right[-23], right[-22], right[-21], right[-20]);
 	med5(right[-14], right[-13], right[-12], right[-11], right[-10]);
 	med5(right[-4], right[-3], right[-2], right[-1], right[0]);
-	med5(left[3], left[23], piv, right[-12], right[-2]);
+	med7(left[3], left[13], left[23], piv, right[-22], right[-12], right[-2]);
 
 	left += 1;
+
 	*pivp = *outerleft;
 
 	while (BLQS_CMP(*left, piv)) left++;
@@ -272,7 +350,7 @@ not_sorted:
 static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	while (1) {
 		ptrdiff_t partszm1 = right - left;
-		if (partszm1 <= 11) {
+		if (partszm1 <= 15) {
 			BLQS(sorting_network)(left, partszm1);
 			return;
 		}

@@ -10,7 +10,7 @@ option. [test_double.cpp](cpp/test_double.cpp)
 | :--- | :--- | :--- |
 | std::sort | 1.33s | 5.56s |
 | pdqsort | 1.33s | 2.81s |
-| **blqsort** (single threaded) | 0.97s | 2.06s |
+| **blqsort** (single threaded) | 0.93s | 1.98s |
 
 For a fair comparison, the single-threaded version of `blqs` was used here. On an M1, the
 threaded versions are another factor of 3 to 4 faster. In terms of runtime, the C++ versions
@@ -18,11 +18,11 @@ differ only very little from the C version.
 
 ### Branchless programming
 
-On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs. This
-is much slower:
+On modern CPUs, **avoiding branch misprediction** is a key technique to speed up programs. This is much
+slower:
 
 ```c
-for (int i = 0; i < 1000; i++) {
+for (int i = 0; i < 10000; i++) {
 	if (numbers[i] < 500) {
 		small_numbers[smlen] = numbers[i];
 		smlen += 1;
@@ -33,7 +33,7 @@ for (int i = 0; i < 1000; i++) {
 than the branchless version:
 
 ```c
-for (int i = 0; i < 1000; i++) {
+for (int i = 0; i < 10000; i++) {
 	small_numbers[smlen] = numbers[i];
 	smlen += (numbers[i] < 500);
 }
@@ -64,7 +64,7 @@ partitioning. The program also checks if a partition is already sorted.
 For larger parts, it uses a median-of-medians strategy to find a good pivot. In addition,
 critical partitioning loops are explicitly unrolled.
 
-For 2 to 12 elements, the algorithm uses custom sorting networks. This approach requires a
+For 2 to 16 elements, the algorithm uses custom sorting networks. This approach requires a
 separate code path for each size but sorts small subsets with very few swaps using a branchless
 *sort-2* primitive. [Source for sorting networks](https://bertdobbelaere.github.io/
 sorting_networks.html)
@@ -159,7 +159,7 @@ Execution times for sorting 50 million of these `structs`.
 | :--- | :--- | :--- |
 | std::sort | 3.46s | 4.75s |
 | pdqsort | 3.46s | 4.72s |
-| **blqsort** | 0.96s | 2.20s |
+| **blqsort** | 0.90s | 2.10s |
 
 ### Links
 
