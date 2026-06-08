@@ -200,26 +200,27 @@ static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
 	switch (partszm1_min_1) {
-	case 15: sort16(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
-			l[12],l[13],l[14],l[15]); break;
-	case 14: sort15(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
-				l[12],l[13],l[14]); break;
-	case 13: sort14(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
-			l[12],l[13]); break;
-	case 12: sort13(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
-			l[12]); break;
-	case 11: sort12(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11]); break;
-	case 10: sort11(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10]); break;
-	case 9: sort10(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9]); break;
-	case 8: sort9(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8]); break;
-	case 7: sort8(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7]); break;
-	case 6: sort7(l[0],l[1],l[2],l[3],l[4],l[5],l[6]); break;
-	case 5: sort6(l[0],l[1],l[2],l[3],l[4],l[5]); break;
-	case 4: sort5(l[0],l[1],l[2],l[3],l[4]); break;
-	case 3: sort4(l[0],l[1],l[2],l[3]); break;
-	case 2: sort3(l[0],l[1],l[2]); break;
-	case 1: sort2(l[0],l[1]); break;
 	case 0: break;
+	case 1: sort2(l[0],l[1]); break;
+	case 2: sort3(l[0],l[1],l[2]); break;
+	case 3: sort4(l[0],l[1],l[2],l[3]); break;
+	case 4: sort5(l[0],l[1],l[2],l[3],l[4]); break;
+	case 5: sort6(l[0],l[1],l[2],l[3],l[4],l[5]); break;
+	case 6: sort7(l[0],l[1],l[2],l[3],l[4],l[5],l[6]); break;
+	case 7: sort8(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7]); break;
+	case 8: sort9(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8]); break;
+	case 9: sort10(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9]); break;
+	case 10: sort11(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10]); break;
+	case 11: sort12(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],
+		l[11]); break;
+	case 12: sort13(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+		l[12]); break;
+	case 13: sort14(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+		l[12],l[13]); break;
+	case 14: sort15(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+		l[12],l[13],l[14]); break;
+	case 15: sort16(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
+		l[12],l[13],l[14],l[15]); break;
 	}
 }
 
@@ -347,46 +348,45 @@ not_sorted:
 	return rwr;
 }
 
+static void BLQS(smallsort)(BLQS_TYPE* left, BLQS_TYPE* right) {
+	while (right - left > 15) {
+		BLQS_TYPE* mid = BLQS(partition_small)(left, right);
+		BLQS(smallsort)(left, mid - 1);
+		left = mid + 1;
+	}
+	BLQS(sorting_network)(left, right - left);
+}
+
 static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	while (1) {
 		ptrdiff_t partszm1 = right - left;
-		if (partszm1 <= 15) {
-			BLQS(sorting_network)(left, partszm1);
-			return;
-		}
-		BLQS_TYPE* mid;
-		if (partszm1 <= BLQS_SMALLPART) mid = BLQS(partition_small)(left, right);
-		else {
+		if (partszm1 <= BLQS_SMALLPART) break;
+		BLQS_TYPE* mid = BLQS(partition)(left, right);
+		if (mid == NULL) return; // already sortiert
+
+		if ((mid - left) * 16 < partszm1) {
+			BLQS(sortr)(left, mid - 1);
+
+			BLQS_TYPE piv = *mid;
+			mid += 1;
+			// collect duplicates
+			for (BLQS_TYPE* p = mid; p <= right; p++) {
+				if (!BLQS_CMP(piv, *p)) {
+					BLQS_TYPE h = *mid;
+					*mid = *p;
+					*p = h;
+					mid++;
+				}
+			}
+			left = mid;
+			if (right - left < BLQS_SMALLPART) break;
+
+			// second chance before fallback to heapsort
 			mid = BLQS(partition)(left, right);
-			if (mid == NULL) return; // already sortiert
-
-
 			if ((mid - left) * 16 < partszm1) {
-				BLQS(sortr)(left, mid - 1);
-
-				BLQS_TYPE piv = *mid;
-				mid += 1;
-				// collect duplicates
-				for (BLQS_TYPE* p = mid; p <= right; p++) {
-					if (!BLQS_CMP(piv, *p)) {
-						BLQS_TYPE h = *mid;
-						*mid = *p;
-						*p = h;
-						mid++;
-					}
-				}
-				left = mid;
-				if (right - left < BLQS_SMALLPART) {
-					BLQS(sortr)(left, right);
-					return;
-				}
-				// second chance before fallback to heapsort
-				mid = BLQS(partition)(left, right);
-				if ((mid - left) * 16 < partszm1) {
-					BLQS(heap_sort)(left, mid - 1);
-					BLQS(heap_sort)(mid + 1, right);
-					return;
-				}
+				BLQS(heap_sort)(left, mid - 1);
+				BLQS(heap_sort)(mid + 1, right);
+				return;
 			}
 		}
 		if (mid - left < right - mid) {
@@ -397,6 +397,7 @@ static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 			right = mid - 1;
 		}
 	}
+	BLQS(smallsort)(left, right);
 }
 
 #undef SWSZ

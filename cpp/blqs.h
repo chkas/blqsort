@@ -16,14 +16,15 @@
 #include <type_traits>
 #include <functional>
 #include <utility>
+#include <cstring>
 
 namespace blqs {
 
-constexpr int SMALLPART = 512;
+constexpr int SMALLPART = 768;
 constexpr int SWSZ = 1024;
 constexpr int UNROLL = 16;
 
-constexpr long BLSZ = 768;
+constexpr long BLSZ = 512;
 
 template<typename T, typename Compare>
 static inline void sort2(T& a, T& b, Compare comp) {
@@ -191,26 +192,31 @@ static inline void sort16(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, 
 template<typename T, typename Compare>
 static inline void sorting_network(T* l, int partsz_min1, Compare comp) {
 	switch (partsz_min1) {
-		case 15: sort16(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10], l[11], l[12],
-			l[13], l[14], l[15], comp); break;
-		case 14: sort15(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10], l[11], l[12],
-			l[13], l[14], comp); break;
-		case 13: sort14(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10], l[11], l[12],
-			l[13], comp); break;
-		case 12: sort13(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10], l[11],
-			l[12], comp); break;
-		case 11: sort12(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],comp); break;
-		case 10: sort11(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],comp); break;
-		case 9:  sort10(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],comp); break;
-		case 8:  sort9(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],comp); break;
-		case 7:  sort8(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],comp); break;
-		case 6:  sort7(l[0],l[1],l[2],l[3],l[4],l[5],l[6],comp); break;
-		case 5:  sort6(l[0],l[1],l[2],l[3],l[4],l[5],comp); break;
-		case 4:  sort5(l[0],l[1],l[2],l[3],l[4],comp); break;
-		case 3:  sort4(l[0],l[1],l[2],l[3],comp); break;
-		case 2:  sort3(l[0],l[1],l[2],comp); break;
-		case 1:  sort2(l[0], l[1], comp); break;
-		default: break;
+	case 0: break;
+	case 1:  sort2(l[0], l[1], comp); break;
+	case 2:  sort3(l[0], l[1], l[2], comp); break;
+	case 3:  sort4(l[0], l[1], l[2], l[3], comp); break;
+	case 4:  sort5(l[0], l[1], l[2], l[3], l[4], comp); break;
+	case 5:  sort6(l[0], l[1], l[2], l[3], l[4], l[5], comp); break;
+	case 6:  sort7(l[0], l[1], l[2], l[3], l[4], l[5], l[6], comp); break;
+	case 7:  sort8(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], comp); break;
+	case 8:  sort9(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], comp); break;
+	case 9:  sort10(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		 l[8], l[9], comp); break;
+	case 10: sort11(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], comp); break;
+	case 11: sort12(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], comp); break;
+	case 12: sort13(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], comp); break;
+	case 13: sort14(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], l[13], comp); break;
+	case 14: sort15(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], l[13], l[14], comp); break;
+	case 15: sort16(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15], comp); break;
+	default: break;
 	}
 }
 
@@ -246,7 +252,6 @@ void heap_sort(T* left, T* right, Compare comp) {
 		}
 	}
 }
-
 template<typename T, typename Compare>
 static inline void med5(T& a, T& b, T& c, T& d, T& e, Compare comp) {
 	sort2(a, b, comp); sort2(c, d, comp);
@@ -254,6 +259,7 @@ static inline void med5(T& a, T& b, T& c, T& d, T& e, Compare comp) {
 	sort2(b, c, comp); sort2(c, e, comp);
 	sort2(b, c, comp);
 }
+
 template<typename T, typename Compare>
 static inline void med7(T& a, T& b, T& c, T& d, T& e, T& f, T& g, Compare comp) {
 	sort2(a, b, comp); sort2(c, d, comp); sort2(a, c, comp); \
@@ -287,7 +293,7 @@ static T* partition_small(T* left, T* right, Compare comp) {
 		*lwr = *sw = *left++;
 		lwr += h; sw += !h;
 	}
-	std::move(swbuf, sw, lwr);
+	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	lwr -= 1;
 	*outerleft = *lwr;
 	*lwr = piv;
@@ -356,53 +362,52 @@ not_sorted:
 	while (left <= right) {
 		bool h = comp(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
 	}
-	std::move(swbuf, sw, lwr);
+	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
 }
 
 template<typename T, typename Compare>
+void smallsort(T* left, T* right, Compare comp) {
+	while (right - left > 15) {
+		T* mid = partition_small(left, right, comp);
+		smallsort(left, mid - 1, comp);
+		left = mid + 1;
+	}
+	sorting_network(left, right - left, comp);
+}
+
+template<typename T, typename Compare>
 void blqsort(T* left, T* right, Compare comp) {
 	while (1) {
 		ptrdiff_t partszm1 = right - left;
-		T* mid;
+		if (partszm1 <= SMALLPART) break;
 
-		if (partszm1 <= SMALLPART) {
-			if (partszm1 <= 15) {
-				sorting_network(left, (int)partszm1, comp);
-				return;
+		T* mid = partition_large(left, right, comp);
+		if (mid == NULL) return; // already sortiert
+
+		if ((mid - left) * 16 < partszm1) {
+			blqsort(left, mid - 1, comp);
+
+			T piv = *mid;
+			mid += 1;
+			// collect duplicates
+			for (T* p = mid; p <= right; p++) {
+				if (!comp(piv, *p)) {
+					std::swap(*mid, *p);
+					mid++;
+				}
 			}
-			mid = partition_small(left, right, comp);
-		}
-		else {
+			left = mid;
+			if (right - left < SMALLPART) break;
+
+			// second chance before fallback to heapsort
 			mid = partition_large(left, right, comp);
-			if (mid == NULL) return; // already sortiert
-
 			if ((mid - left) * 16 < partszm1) {
-				blqsort(left, mid - 1, comp);
-
-				T piv = *mid;
-				mid += 1;
-				// collect duplicates
-				for (T* p = mid; p <= right; p++) {
-					if (!comp(piv, *p)) {
-						std::swap(*mid, *p);
-						mid++;
-					}
-				}
-				left = mid;
-				if (right - left < SMALLPART) {
-					blqsort(left, right, comp);
-					return;
-				}
-				// second chance before fallback to heapsort
-				mid = partition_large(left, right, comp);
-				if ((mid - left) * 16 < partszm1) {
-					heap_sort(left, mid - 1, comp);
-					heap_sort(mid + 1, right, comp);
-					return;
-				}
+				heap_sort(left, mid - 1, comp);
+				heap_sort(mid + 1, right, comp);
+				return;
 			}
 		}
 		if (mid - left < right - mid) {
@@ -414,6 +419,7 @@ void blqsort(T* left, T* right, Compare comp) {
 			right = mid - 1;
 		}
 	}
+	smallsort(left, right, comp);
 }
 
 template <typename T, typename Compare>
