@@ -321,10 +321,7 @@ not_sorted:
 			int h = BLQS_CMP(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 		}
 	}
-	while (sw < swbuf + SWSZ - UNROLL && left <= right) {
-		int h = BLQS_CMP(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
-	}
-	while (left <= right - UNROLL) {
+	while (left <= right - UNROLL && (rwr > right + UNROLL || lwr < left - UNROLL)) {
 		while (rwr > right + UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
 				int h = BLQS_CMP(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
@@ -340,7 +337,9 @@ not_sorted:
 		int h = BLQS_CMP(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 	}
 	while (left <= right) {
-		int h = BLQS_CMP(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
+		BLQS_TYPE x = *right--;
+		if (BLQS_CMP(x, piv)) *lwr++ = x;
+		else *rwr-- = x;
 	}
 	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
 	*outerleft = *rwr;

@@ -22,14 +22,12 @@ int main() {
 	printf("Sorting %d million doubles\n", SIZE / 1000000);
 	srand(1);
 	for (int i = 0; i < SIZE; i++) data[i] = rand() / 1024.0;
-	printf("blqs::sort: "); fflush(stdout);
 	t0 = time();
 	blqs::sort(data, data + SIZE);
-	printf("%.2fs\n", time() - t0);
+	printf("blqs::sort: %.2fs\n", time() - t0);
 	srand(1);
 	for (int i = 0; i < SIZE; i++) data[i] = rand() / 1024.0;
-	printf("std::sort:  "); fflush(stdout);
 	t0 = time();
 	std::sort(data, data + SIZE);
-	printf("%.2fs\n", time() - t0);
+	printf("std::sort: %.2fs\n", time() - t0);
 }

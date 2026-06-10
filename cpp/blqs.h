@@ -341,10 +341,7 @@ not_sorted:
 			bool h = comp(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
 		}
 	}
-	while (sw < swbuf + SWSZ - UNROLL && left <= right) {
-		bool h = comp(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
-	}
-	while (left <= right - UNROLL) {
+	while (left <= right - UNROLL && (rwr > right + UNROLL || lwr < left - UNROLL)) {
 		while (rwr > right + UNROLL && left <= right - UNROLL) {
 			for (int i = UNROLL; i--;) {
 				bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
@@ -360,7 +357,9 @@ not_sorted:
 		bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
 	}
 	while (left <= right) {
-		bool h = comp(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
+		T x = *right--;
+		if (comp(x, piv)) *lwr++ = x;
+		else *rwr-- = x;
 	}
 	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	*outerleft = *rwr;
