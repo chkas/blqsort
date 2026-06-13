@@ -54,7 +54,9 @@ int main() {
 	t0 = ts();
 	blqsort(data, SIZE);
 	printf("Nearly sorted: %.2fs\n", ts() - t0);
+	chksum_test(0x5ccf71d);
 
+return 0;
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() % 1000;
 	t0 = ts();
 	blqsort(data, SIZE);

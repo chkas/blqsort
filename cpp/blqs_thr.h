@@ -27,195 +27,195 @@ constexpr int BLSZ = 512;
 
 template<typename T, typename Compare>
 static inline void sort2(T& a, T& b, Compare comp) {
-	T x = a;
-	T y = b;
+	T x = a; T y = b;
 	bool m = comp(x, y);
-	a = m ? x : y;
-	b = m ? y : x;
+	a = m ? x : y; b = m ? y : x;
 }
 
 template<typename T, typename Compare>
 static inline void sort3(T& a, T& b, T& c, Compare comp) {
-	sort2(a, b, comp);
-	sort2(b, c, comp);
-	sort2(a, b, comp);
+	sort2(a, b, comp); sort2(b, c, comp); sort2(a, b, comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort4(T& a, T& b, T& c, T& d, Compare comp) {
-	sort2(a, b, comp);
-	sort2(c, d, comp);
-	sort2(a, c, comp);
-	sort2(b, d, comp);
-	sort2(b, c, comp);
+	sort2(a, b, comp); sort2(c, d, comp); sort2(a, c, comp);
+	sort2(b, d, comp); sort2(b, c, comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort5(T& a, T& b, T& c, T& d, T& e, Compare comp) {
-	sort2(b, c, comp);
-	sort2(d, e, comp);
-	sort2(b, d, comp);
-	sort2(a, c, comp);
-	sort2(a, d, comp);
-	sort2(c, e, comp);
-	sort2(a, b, comp);
-	sort2(c, d, comp);
-	sort2(b, c, comp);
+	sort2(b, c, comp); sort2(d, e, comp); sort2(b, d, comp);
+	sort2(a, c, comp); sort2(a, d, comp); sort2(c, e, comp);
+	sort2(a, b, comp); sort2(c, d, comp); sort2(b, c, comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort6(T& a, T& b, T& c, T& d, T& e, T& f, Compare comp) {
-	sort2(a, b, comp);
-	sort2(c, d, comp);
-	sort2(e, f, comp);
-	sort2(a, c, comp);
-	sort2(b, d, comp);
-	sort2(e, f, comp);
-	sort2(a, e, comp);
-	sort2(b, f, comp);
-	sort2(c, e, comp);
-	sort2(d, f, comp);
-	sort2(b, c, comp);
-	sort2(d, e, comp);
+	sort2(a, b, comp); sort2(c, d, comp); sort2(e, f, comp);
+	sort2(a, c, comp); sort2(b, d, comp); sort2(e, f, comp);
+	sort2(a, e, comp); sort2(b, f, comp); sort2(c, e, comp);
+	sort2(d, f, comp); sort2(b, c, comp); sort2(d, e, comp);
 	sort2(c, d, comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort7(T& a, T& b, T& c, T& d, T& e, T& f, T& g, Compare comp) {
-	sort2(a, b, comp);
-	sort2(c, d, comp);
-	sort2(a, c, comp);
-	sort2(b, d, comp);
-	sort2(b, c, comp);
-	sort2(e, f, comp);
-	sort2(e, g, comp);
-	sort2(f, g, comp);
-	sort2(a, e, comp);
-	sort2(b, f, comp);
-	sort2(c, g, comp);
-	sort2(b, e, comp);
-	sort2(d, g, comp);
-	sort2(c, e, comp);
-	sort2(b, c, comp);
-	sort2(d, f, comp);
-	sort2(d, e, comp);
+	sort2(a, g, comp); sort2(c, d, comp); sort2(e, f, comp);
+	sort2(a, c, comp); sort2(b, e, comp); sort2(d, g, comp);
+	sort2(a, b, comp); sort2(c, f, comp); sort2(d, e, comp);
+	sort2(b, c, comp); sort2(e, g, comp);
+	sort2(c, d, comp); sort2(e, f, comp);
+	sort2(b, c, comp); sort2(d, e, comp); sort2(f, g, comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort8(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, Compare comp) {
-	sort7(a, b, c, d, e, f, g, comp);
-	sort2(g, h, comp);
-	sort2(f, g, comp);
-	sort2(e, f, comp);
-	sort2(d, e, comp);
-	sort2(c, d, comp);
-	sort2(b, c, comp);
-	sort2(a, b, comp);
+	sort2(a,b,comp); sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp);
+	sort2(a,c,comp); sort2(b,d,comp); sort2(e,g,comp); sort2(f,h,comp);
+	sort2(b,c,comp); sort2(f,g,comp);
+	sort2(a,e,comp); sort2(b,f,comp); sort2(c,g,comp); sort2(d,h,comp);
+	sort2(c,e,comp); sort2(d,f,comp);
+	sort2(b,c,comp); sort2(d,e,comp); sort2(f,g,comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort9(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, Compare comp) {
-	sort8(a, b, c, d, e, f, g, h, comp);
-	sort2(h, i, comp);
-	sort2(g, h, comp);
-	sort2(f, g, comp);
-	sort2(e, f, comp);
-	sort2(d, e, comp);
-	sort2(c, d, comp);
-	sort2(b, c, comp);
-	sort2(a, b, comp);
+	sort2(a,d,comp); sort2(b,h,comp); sort2(c,f,comp); sort2(e,i,comp);
+	sort2(a,h,comp); sort2(c,e,comp); sort2(d,i,comp); sort2(f,g,comp);
+	sort2(a,c,comp); sort2(b,d,comp); sort2(e,f,comp); sort2(h,i,comp);
+	sort2(b,e,comp); sort2(d,g,comp); sort2(f,h,comp);
+	sort2(a,b,comp); sort2(c,e,comp); sort2(d,f,comp); sort2(g,i,comp);
+	sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp);
+	sort2(b,c,comp); sort2(d,e,comp); sort2(f,g,comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort10(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, T& j, Compare comp) {
-	sort9(a, b, c, d, e, f, g, h, i, comp);
-	sort2(i, j, comp);
-	sort2(h, i, comp);
-	sort2(g, h, comp);
-	sort2(f, g, comp);
-	sort2(e, f, comp);
-	sort2(d, e, comp);
-	sort2(c, d, comp);
-	sort2(b, c, comp);
-	sort2(a, b, comp);
+	sort2(a,b,comp); sort2(c,f,comp); sort2(d,g,comp); sort2(e,h,comp); sort2(i,j,comp);
+	sort2(a,g,comp); sort2(b,i,comp); sort2(c,e,comp); sort2(d,j,comp); sort2(f,h,comp);
+	sort2(a,c,comp); sort2(b,d,comp); sort2(e,f,comp); sort2(g,i,comp); sort2(h,j,comp);
+	sort2(a,b,comp); sort2(c,h,comp); sort2(d,f,comp); sort2(e,g,comp); sort2(i,j,comp);
+	sort2(b,c,comp); sort2(d,e,comp); sort2(f,g,comp); sort2(h,i,comp);
+	sort2(b,d,comp); sort2(c,e,comp); sort2(f,h,comp); sort2(g,i,comp);
+	sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort11(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, T& j, T& k, Compare comp) {
-	sort10(a, b, c, d, e, f, g, h, i, j, comp);
-	sort2(j, k, comp);
-	sort2(i, j, comp);
-	sort2(h, i, comp);
-	sort2(g, h, comp);
-	sort2(f, g, comp);
-	sort2(e, f, comp);
-	sort2(d, e, comp);
-	sort2(c, d, comp);
-	sort2(b, c, comp);
-	sort2(a, b, comp);
+	sort2(a,j,comp); sort2(b,g,comp); sort2(c,e,comp); sort2(d,h,comp); sort2(f,i,comp);
+	sort2(a,b,comp); sort2(d,f,comp); sort2(e,k,comp); sort2(g,j,comp); sort2(h,i,comp);
+	sort2(b,d,comp); sort2(c,f,comp); sort2(e,h,comp); sort2(i,k,comp);
+	sort2(a,e,comp); sort2(b,c,comp); sort2(d,h,comp); sort2(f,j,comp); sort2(g,i,comp);
+	sort2(a,b,comp); sort2(c,g,comp); sort2(e,f,comp); sort2(h,i,comp);
+	sort2(j,k,comp);
+	sort2(c,e,comp); sort2(d,g,comp); sort2(f,h,comp); sort2(i,j,comp);
+	sort2(b,c,comp); sort2(d,e,comp); sort2(f,g,comp); sort2(h,i,comp);
+	sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp);
 }
 
 template<typename T, typename Compare>
 static inline void sort12(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, T& j, T& k, T& l, Compare comp) {
-	sort11(a, b, c, d, e, f, g, h, i, j, k, comp);
-	sort2(k, l, comp);
-	sort2(j, k, comp);
-	sort2(i, j, comp);
-	sort2(h, i, comp);
-	sort2(g, h, comp);
-	sort2(f, g, comp);
-	sort2(e, f, comp);
-	sort2(d, e, comp);
-	sort2(c, d, comp);
-	sort2(b, c, comp);
-	sort2(a, b, comp);
+	sort2(a,i,comp); sort2(b,h,comp); sort2(c,g,comp); sort2(d,l,comp); sort2(e,k,comp); sort2(f,j,comp);
+	sort2(a,c,comp); sort2(b,e,comp); sort2(d,f,comp); sort2(g,i,comp); sort2(h,k,comp); sort2(j,l,comp);
+	sort2(a,b,comp); sort2(c,j,comp); sort2(e,h,comp); sort2(f,g,comp); sort2(k,l,comp);
+	sort2(b,d,comp); sort2(c,h,comp); sort2(e,j,comp); sort2(i,k,comp);
+	sort2(a,b,comp); sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp); sort2(i,j,comp); sort2(k,l,comp);
+	sort2(b,c,comp); sort2(d,f,comp); sort2(g,i,comp); sort2(j,k,comp);
+	sort2(c,e,comp); sort2(d,g,comp); sort2(f,i,comp); sort2(h,j,comp);
+	sort2(b,c,comp); sort2(d,e,comp); sort2(f,g,comp); sort2(h,i,comp); sort2(j,k,comp);
+}
+template<typename T, typename Compare>
+static inline void sort13(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, T& j, T& k, T& l, T& m,
+						  Compare comp) {
+	sort2(a,m,comp); sort2(b,k,comp); sort2(c,j,comp); sort2(d,h,comp); sort2(f,l,comp); sort2(g,i,comp);
+	sort2(b,g,comp); sort2(c,d,comp); sort2(e,l,comp); sort2(h,j,comp); sort2(i,k,comp);
+	sort2(a,e,comp); sort2(b,c,comp); sort2(d,g,comp); sort2(h,i,comp); sort2(j,k,comp); sort2(l,m,comp);
+	sort2(e,g,comp); sort2(f,j,comp); sort2(i,l,comp); sort2(k,m,comp);
+	sort2(a,f,comp); sort2(d,i,comp); sort2(e,h,comp); sort2(g,l,comp); sort2(j,k,comp);
+	sort2(a,b,comp); sort2(c,f,comp); sort2(g,j,comp); sort2(h,i,comp); sort2(k,l,comp);
+	sort2(b,d,comp); sort2(c,e,comp); sort2(f,g,comp); sort2(j,k,comp);
+	sort2(b,c,comp); sort2(d,e,comp); sort2(f,h,comp); sort2(g,i,comp);
+	sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp); sort2(i,j,comp);
+	sort2(d,e,comp); sort2(f,g,comp);
+}
+template<typename T, typename Compare>
+static inline void sort14(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, T& j, T& k, T& l,
+						T& m, T& n, Compare comp) {
+	sort2(a,b,comp); sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp); sort2(i,j,comp); sort2(k,l,comp); sort2(m,n,comp);
+	sort2(a,c,comp); sort2(b,d,comp); sort2(e,i,comp); sort2(f,j,comp); sort2(k,m,comp); sort2(l,n,comp);
+	sort2(a,e,comp); sort2(b,c,comp); sort2(d,h,comp); sort2(f,i,comp); sort2(g,k,comp); sort2(j,n,comp); sort2(l,m,comp);
+	sort2(a,g,comp); sort2(b,f,comp); sort2(d,j,comp); sort2(e,k,comp); sort2(h,n,comp); sort2(i,m,comp);
+	sort2(c,k,comp); sort2(d,l,comp); sort2(e,g,comp); sort2(h,j,comp);
+	sort2(b,d,comp); sort2(c,i,comp); sort2(f,l,comp); sort2(g,h,comp); sort2(k,m,comp);
+	sort2(b,e,comp); sort2(c,g,comp); sort2(d,f,comp); sort2(h,l,comp); sort2(i,k,comp); sort2(j,m,comp);
+	sort2(c,e,comp); sort2(d,g,comp); sort2(f,i,comp); sort2(h,k,comp); sort2(j,l,comp);
+	sort2(d,e,comp); sort2(f,g,comp); sort2(h,i,comp); sort2(j,k,comp);
+	sort2(g,h,comp);
+}
+template<typename T, typename Compare>
+static inline void sort15(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, T& j, T& k, T& l,
+						T& m, T& n, T& o, Compare comp) {
+	sort2(b,c,comp); sort2(d,k,comp); sort2(e,o,comp); sort2(f,i,comp); sort2(g,n,comp); sort2(h,m,comp); sort2(j,l,comp);
+	sort2(a,o,comp); sort2(b,f,comp); sort2(c,i,comp); sort2(d,h,comp); sort2(g,j,comp); sort2(k,m,comp); sort2(l,n,comp);
+	sort2(a,h,comp); sort2(b,g,comp); sort2(c,j,comp); sort2(e,k,comp); sort2(f,l,comp); sort2(i,n,comp); sort2(m,o,comp);
+	sort2(a,g,comp); sort2(c,e,comp); sort2(d,f,comp); sort2(h,l,comp); sort2(i,k,comp); sort2(j,m,comp); sort2(n,o,comp);
+	sort2(a,d,comp); sort2(b,c,comp); sort2(e,h,comp); sort2(f,j,comp); sort2(g,i,comp); sort2(k,l,comp); sort2(m,n,comp);
+	sort2(a,b,comp); sort2(c,d,comp); sort2(e,g,comp); sort2(h,j,comp); sort2(k,m,comp); sort2(l,n,comp);
+	sort2(b,c,comp); sort2(d,f,comp); sort2(i,k,comp); sort2(l,m,comp);
+	sort2(d,e,comp); sort2(f,g,comp); sort2(h,i,comp); sort2(j,k,comp);
+	sort2(c,d,comp); sort2(e,f,comp); sort2(g,h,comp); sort2(i,j,comp); sort2(k,l,comp);
+	sort2(f,g,comp); sort2(h,i,comp);
+}
+template<typename T, typename Compare>
+static inline void sort16(T& a, T& b, T& c, T& d, T& e, T& f, T& g, T& h, T& i, T& j, T& k,
+							T& l, T& m, T& n, T& o, T& p, Compare comp) {
+	sort2(a,n,comp); sort2(b,m,comp); sort2(c,p,comp); sort2(d,o,comp); sort2(e,i,comp);
+	sort2(f,g,comp); sort2(h,l,comp); sort2(j,k,comp);
+	sort2(a,f,comp); sort2(b,h,comp); sort2(c,j,comp); sort2(d,e,comp); sort2(g,n,comp);
+	sort2(i,o,comp); sort2(k,p,comp); sort2(l,m,comp);
+	sort2(a,b,comp); sort2(c,d,comp); sort2(e,f,comp); sort2(g,i,comp); sort2(h,j,comp);
+	sort2(k,l,comp); sort2(m,n,comp); sort2(o,p,comp);
+	sort2(a,c,comp); sort2(b,d,comp); sort2(e,k,comp); sort2(f,l,comp); sort2(g,h,comp);
+	sort2(i,j,comp); sort2(m,o,comp); sort2(n,p,comp);
+	sort2(b,c,comp); sort2(d,m,comp); sort2(e,g,comp); sort2(f,h,comp); sort2(i,k,comp);
+	sort2(j,l,comp); sort2(n,o,comp);
+	sort2(b,e,comp); sort2(c,g,comp); sort2(f,i,comp); sort2(h,k,comp); sort2(j,n,comp);
+	sort2(l,o,comp);
+	sort2(c,e,comp); sort2(d,g,comp); sort2(j,m,comp); sort2(l,n,comp);
+	sort2(d,f,comp); sort2(g,i,comp); sort2(h,j,comp); sort2(k,m,comp);
+	sort2(d,e,comp); sort2(f,g,comp); sort2(h,i,comp); sort2(j,k,comp); sort2(l,m,comp);
+	sort2(g,h,comp); sort2(i,j,comp);
 }
 
 template<typename T, typename Compare>
-static inline void sorting_network(T* left, int partsz_min_1, Compare comp) {
-	switch (partsz_min_1) {
-	case 11:
-		sort12(left[0], left[1], left[2], left[3], left[4], left[5],
-			   left[6], left[7], left[8], left[9], left[10], left[11], comp);
-		break;
-	case 10:
-		sort11(left[0], left[1], left[2], left[3], left[4], left[5],
-			   left[6], left[7], left[8], left[9], left[10], comp);
-		break;
-	case 9:
-		sort10(left[0], left[1], left[2], left[3], left[4],
-			   left[5], left[6], left[7], left[8], left[9], comp);
-		break;
-	case 8:
-		sort9(left[0], left[1], left[2], left[3], left[4],
-			  left[5], left[6], left[7], left[8], comp);
-		break;
-	case 7:
-		sort8(left[0], left[1], left[2], left[3],
-			  left[4], left[5], left[6], left[7], comp);
-		break;
-	case 6:
-		sort7(left[0], left[1], left[2], left[3],
-			  left[4], left[5], left[6], comp);
-		break;
-	case 5:
-		sort6(left[0], left[1], left[2], left[3],
-			  left[4], left[5], comp);
-		break;
-	case 4:
-		sort5(left[0], left[1], left[2], left[3], left[4], comp);
-		break;
-	case 3:
-		sort4(left[0], left[1], left[2], left[3], comp);
-		break;
-	case 2:
-		sort3(left[0], left[1], left[2], comp);
-		break;
-	case 1:
-		sort2(left[0], left[1], comp);
-		break;
-	default:
-		break;
+static inline void sorting_network(T* l, int partsz_min1, Compare comp) {
+	switch (partsz_min1) {
+	case 0: break;
+	case 1:  sort2(l[0], l[1], comp); break;
+	case 2:  sort3(l[0], l[1], l[2], comp); break;
+	case 3:  sort4(l[0], l[1], l[2], l[3], comp); break;
+	case 4:  sort5(l[0], l[1], l[2], l[3], l[4], comp); break;
+	case 5:  sort6(l[0], l[1], l[2], l[3], l[4], l[5], comp); break;
+	case 6:  sort7(l[0], l[1], l[2], l[3], l[4], l[5], l[6], comp); break;
+	case 7:  sort8(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], comp); break;
+	case 8:  sort9(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], comp); break;
+	case 9:  sort10(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		 l[8], l[9], comp); break;
+	case 10: sort11(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], comp); break;
+	case 11: sort12(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], comp); break;
+	case 12: sort13(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], comp); break;
+	case 13: sort14(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], l[13], comp); break;
+	case 14: sort15(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], l[13], l[14], comp); break;
+	case 15: sort16(l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+		l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15], comp); break;
+	default: break;
 	}
 }
 
@@ -264,28 +264,44 @@ static inline void med5(T& a, T& b, T& c, T& d, T& e, Compare comp) {
 }
 
 template<typename T, typename Compare>
+static inline void med7(T& a, T& b, T& c, T& d, T& e, T& f, T& g, Compare comp) {
+	sort2(a, b, comp); sort2(c, d, comp); sort2(a, c, comp); \
+	sort2(b, d, comp); sort2(b, c, comp); sort2(e, f, comp); \
+	sort2(e, g, comp); sort2(a, e, comp); \
+	sort2(b, f, comp); sort2(c, g, comp); sort2(b, e, comp); \
+	sort2(c, e, comp); \
+	sort2(d, f, comp); sort2(d, e, comp); \
+}
+
+
+template<typename T, typename Compare>
 static T* partition_small(T* left, T* right, Compare comp) {
 	T* outerleft = left;
-	T* pivp = left + (right - left) / 2;
+	T* pivp = left + 8;
 
-	T l1 = left[1], l2 = left[2];
 	T piv = *pivp;
-	T r1 = right[-1], r0 = *right;
-	med5(l1, l2, piv, r1, r0, comp);
-	left[1] = l1; left[2] = l2;
-	right[-1] = r1; *right = r0;
+	T l1 = left[1], l2 = left[2], l3 = left[3];
+	T r2 = right[-2], r1 = right[-1], r0 = *right;
+	med7(l1, l2, l3, piv, r2, r1, r0, comp);
+	left[1] = l1; left[2] = l2; left[3] = l3;
+	right[-2] = r2; right[-1] = r1; *right = r0;
+	left += 4;
+	right -= 3;
 
-	left += 3; right -= 2;
 	*pivp = *outerleft;
 
 	T swbuf[SMALLPART];
 	T *sw = swbuf, *lwr = left;
+
+	while (right - left >= UNROLL) for (int i = UNROLL; i--;) {
+		bool h = comp(*left, piv);
+		*lwr = *sw = *left++; lwr += h; sw += !h;
+	}
 	while (left <= right) {
 		bool h = comp(*left, piv);
-		*lwr = *sw = *left++;
-		lwr += h; sw += !h;
+		*lwr = *sw = *left++; lwr += h; sw += !h;
 	}
-	std::move(swbuf, sw, lwr);
+	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	lwr -= 1;
 	*outerleft = *lwr;
 	*lwr = piv;
@@ -298,92 +314,78 @@ static T* partition_large(T* left, T* right, Compare comp) {
 	T* pivp = left + (right - left) / 2;
 
 	T piv = *pivp;
-
 	med5(left[1], left[2], left[3], left[4], left[5], comp);
+	med5(left[11], left[12], left[13], left[14], left[15], comp);
 	med5(left[21], left[22], left[23], left[24], left[25], comp);
 	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2], comp);
+	med5(right[-24], right[-23], right[-22], right[-21], right[-20], comp);
 	med5(right[-14], right[-13], right[-12], right[-11], right[-10], comp);
 	med5(right[-4], right[-3], right[-2], right[-1], right[0], comp);
-	med5(left[3], left[23], piv, right[-12], right[-2], comp);
+	med7(left[3], left[13], left[23], piv, right[-22], right[-12], right[-2], comp);
 
 	left += 1;
 	*pivp = *outerleft;
 
-	while (comp(*left, piv)) left++;
-	if (left >= outerleft + 32) {
-		// could be sorted
-		*pivp = piv;
-		for (T* p = outerleft + 1; p <= right; p++) {
-			if (comp(*p, *(p - 1))) {
-				*pivp = *outerleft;
-				goto not_sorted;
-			}
-		}
-		return NULL;
-	}
-not_sorted:
-	while (comp(piv, *right)) right--;
-
 	T swbuf[SWSZ];
 	T *lwr = left, *rwr = right, *sw = swbuf;
 
-	while (sw < swbuf + SWSZ - UNROLL && left <= right - UNROLL) {
-		for (int i = UNROLL; i--;) {
-			bool h = comp(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
-		}
-	}
-	while (left <= right - UNROLL && (rwr > right + UNROLL || lwr < left - UNROLL)) {
-		while (rwr > right + UNROLL && left <= right - UNROLL) {
+	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
+		ptrdiff_t avail = std::min(right - left, SWSZ - (sw - swbuf));
+		T* endp = right - avail;
+		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
-				bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
+				int h = comp(*right, piv);
+				*rwr = *sw = *right--; rwr -= !h; sw += h;
 			}
 		}
-		while (lwr < left - UNROLL && left <= right - UNROLL) {
+	}
+
+	while (right - left >= UNROLL &&
+			(rwr - right > UNROLL || left - lwr > UNROLL)) {
+
+		while (rwr - right > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
-				bool h = comp(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
+				int h = comp(*left, piv);
+				*lwr = *rwr = *left++; lwr += h; rwr -= !h;
+			}
+		}
+		while (left - lwr > UNROLL && right - left >= UNROLL) {
+			for (int i = UNROLL; i--;) {
+				int h = comp(*right, piv);
+				*rwr = *lwr = *right--; rwr -= !h; lwr += h;
 			}
 		}
 	}
 	while (rwr > right && left <= right) {
-		bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
+		T x = *left++;
+		if (comp(x, piv)) *lwr++ = x;
+		else *rwr-- = x;
 	}
-	while (left <= right) {
+	while (lwr < left && left <= right) {
 		T x = *right--;
 		if (comp(x, piv)) *lwr++ = x;
 		else *rwr-- = x;
 	}
-	std::move(swbuf, sw, lwr);
+	if (left == outerleft + 1) {
+		while (left <= right && !comp(*right, piv)) {
+			right--;
+			rwr--;
+		}
+	}
+	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
 }
 
-// ------------------------------------------------------------
-// for non-trivial copyable path
-// ------------------------------------------------------------
-
 template<typename T, typename Compare>
-static inline void insert_sort(T* left, T* right, Compare comp) {
-	if (left >= right) return;
-
-	for (T* i = left + 1; i <= right; i++) {
-		T key = std::move(*i);
-		T* j = i;
-
-		while (j > left && comp(key, *(j - 1))) {
-			*j = std::move(*(j - 1));
-			j--;
-		}
-
-		*j = std::move(key);
+void smallsort(T* left, T* right, Compare comp) {
+	while (right - left > 15) {
+		T* mid = partition_small(left, right, comp);
+		smallsort(left, mid - 1, comp);
+		left = mid + 1;
 	}
-}
-
-template<typename T, typename Compare>
-static inline void med3(T* a, T* b, T* c, Compare comp) {
-	if (comp(*b, *a)) std::iter_swap(a, b);
-	if (comp(*c, *a)) std::iter_swap(a, c);
-	if (comp(*c, *b)) std::iter_swap(b, c);
+	sorting_network(left, right - left, comp);
 }
 
 // ------------------------------------------------------------
@@ -421,53 +423,39 @@ static inline void sort_thr(T* left, T* right, Compare comp) {
 }
 
 template<typename T, typename Compare>
-static inline void blqsort(T* left, T* right, Compare comp) {
+void blqsort(T* left, T* right, Compare comp) {
 	while (1) {
 		ptrdiff_t partszm1 = right - left;
-		T* mid;
+		if (partszm1 <= SMALLPART) break;
 
-		if (partszm1 <= SMALLPART) {
-			if (partszm1 <= 11) {
-				sorting_network(left, (int)partszm1, comp);
+		T* mid = partition_large(left, right, comp);
+
+		if (mid - left < partszm1 / 16) {
+			if (mid > left) blqsort(left, mid - 1, comp);
+			T piv = *mid;
+			mid += 1;
+			// collect duplicates
+			for (T* p = mid; p <= right; p++) {
+				if (!comp(piv, *p)) {
+					std::swap(*mid, *p);
+					mid++;
+				}
+			}
+			left = mid;
+			if (right - left < SMALLPART) break;
+
+			// second chance before fallback to heapsort
+			mid = partition_large(left, right, comp);
+			if (mid - left < partszm1 / 16) {
+				if (mid > left) heap_sort(left, mid - 1, comp);
+				if (mid < right) heap_sort(mid + 1, right, comp);
 				return;
 			}
-			mid = partition_small(left, right, comp);
-		}
-		else {
-			mid = partition_large(left, right, comp);
-			if (mid == NULL) return; // already sortiert
-
-			if ((mid - left) * 16 < partszm1) {
-				blqsort(left, mid - 1, comp);
-
-				T piv = *mid;
-				mid += 1;
-				// collect duplicates
-				for (T* p = mid; p <= right; p++) {
-					if (!comp(piv, *p)) {
-						std::swap(*mid, *p);
-						mid++;
-					}
-				}
-				left = mid;
-				if (right - left < SMALLPART) {
-					blqsort(left, right, comp);
-					return;
-				}
-				// second chance before fallback to heapsort
-				mid = partition_large(left, right, comp);
-				if ((mid - left) * 16 < partszm1) {
-					heap_sort(left, mid - 1, comp);
-					heap_sort(mid + 1, right, comp);
-					return;
-				}
-			}
 		}
 
-
+		// ---------------------- threads ---------------------------
 		if ((mid - left) > THREAD_MIN_TRIVIAL && n_threads < (int)max_threads) {
 			n_threads++;
-
 			try {
 				std::thread(sort_thr<T, Compare>, left, mid - 1, comp).detach();
 				left = mid + 1;
@@ -477,6 +465,7 @@ static inline void blqsort(T* left, T* right, Compare comp) {
 				n_threads--;
 			}
 		}
+		// --------------------------------------------------------------------
 
 		if (mid - left < right - mid) {
 			blqsort(left, mid - 1, comp);
@@ -487,6 +476,29 @@ static inline void blqsort(T* left, T* right, Compare comp) {
 			right = mid - 1;
 		}
 	}
+	smallsort(left, right, comp);
+}
+
+// -------  Based on BlockQuicksort by Edelkamp and Weiß ------------
+
+template <typename T, typename Compare>
+static inline void insert_sort(T* left, T* right, Compare comp) {
+	for (T* i = left + 1; i <= right; i++) {
+		T key = std::move(*i);
+		T* j = i;
+		while (j > left && comp(key, *(j - 1))) {
+			*j = std::move(*(j - 1));
+			j--;
+		}
+		*j = std::move(key);
+	}
+}
+
+template <typename T, typename Compare>
+static inline void med3(T* a, T* b, T* c, Compare comp) {
+	if (comp(*b, *a)) std::swap(*a, *b);
+	if (comp(*c, *a)) std::swap(*a, *c);
+	if (comp(*c, *b)) std::swap(*b, *c);
 }
 
 template<typename T, typename Compare>
@@ -573,39 +585,26 @@ static inline void block_qsort(T* left0, T* right0, Compare comp) {
 		ptrdiff_t szr = right0 - right;
 		ptrdiff_t szmin = szl < szr ? szl : szr;
 
-		if (szmin * 16 < right0 - left0) {
-			heap_sort(left0, right - 1, comp);
-			heap_sort(right + 1, right0, comp);
+		if (szmin < (right0 - left0) / 16) {
+			if (right > left0) heap_sort(left0, right - 1, comp);
+			if (right < right0) heap_sort(right + 1, right0, comp);
 			return;
 		}
 
-		if (szl > THREAD_MIN_OBJECT && n_threads < (int)max_threads) {
+// ------------     threads   -------------
+		if (right - left0 > THREAD_MIN_OBJECT && n_threads < max_threads) {
 			n_threads++;
-
 			try {
-				std::thread(block_sort_thr<T, Compare>, left0, right - 1, comp).detach();
-				left0 = right + 1;
-				continue;
+				std::thread(block_sort_thr<T, Compare>, left0, right, comp).detach();
 			}
 			catch (...) {
 				n_threads--;
 			}
+			left0 = right + 1;
+			continue;
 		}
-
-		if (szr > THREAD_MIN_OBJECT && n_threads < (int)max_threads) {
-			n_threads++;
-
-			try {
-				std::thread(block_sort_thr<T, Compare>, right + 1, right0, comp).detach();
-				right0 = right - 1;
-				continue;
-			}
-			catch (...) {
-				n_threads--;
-			}
-		}
-
-		if (szl < szr) {
+// -------------------------------------------
+		if (right - left0 < right - mid) {
 			block_qsort(left0, right - 1, comp);
 			left0 = right + 1;
 		}
@@ -614,7 +613,6 @@ static inline void block_qsort(T* left0, T* right0, Compare comp) {
 			right0 = right - 1;
 		}
 	}
-
 	insert_sort(left0, right0, comp);
 }
 
@@ -644,6 +642,7 @@ inline void sort(T* begin, T* end, Compare comp = Compare()) {
 			std::thread(sort_thr<T, Compare>, begin, end - 1, comp).detach();
 		}
 		catch (...) {
+			max_threads = 0;
 			sort_thr(begin, end - 1, comp);
 		}
 	}
@@ -652,6 +651,7 @@ inline void sort(T* begin, T* end, Compare comp = Compare()) {
 			std::thread(block_sort_thr<T, Compare>, begin, end - 1, comp).detach();
 		}
 		catch (...) {
+			max_threads = 0;
 			block_sort_thr(begin, end - 1, comp);
 		}
 	}

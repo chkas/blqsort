@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
 	double t0;
 	printf("Sorting %d million strings with length %d with threads...\n", SIZE / 1000000, STRSZ);
 	for (int i = 0; i < SIZE; i++) data[i] = genstr();
-
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("blqs::sort %.2fs\n", time() - t0);

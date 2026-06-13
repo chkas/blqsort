@@ -13,14 +13,14 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <type_traits>
 #include <functional>
 #include <utility>
-#include <cstring>
 
 namespace blqs {
 
-constexpr int SMALLPART = 768;
+constexpr int SMALLPART = 1024;
 constexpr int SWSZ = 1024;
 constexpr int UNROLL = 16;
 
@@ -288,10 +288,14 @@ static T* partition_small(T* left, T* right, Compare comp) {
 
 	T swbuf[SMALLPART];
 	T *sw = swbuf, *lwr = left;
+
+	while (right - left >= UNROLL) for (int i = UNROLL; i--;) {
+		bool h = comp(*left, piv);
+		*lwr = *sw = *left++; lwr += h; sw += !h;
+	}
 	while (left <= right) {
 		bool h = comp(*left, piv);
-		*lwr = *sw = *left++;
-		lwr += h; sw += !h;
+		*lwr = *sw = *left++; lwr += h; sw += !h;
 	}
 	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	lwr -= 1;
@@ -318,48 +322,51 @@ static T* partition_large(T* left, T* right, Compare comp) {
 	left += 1;
 	*pivp = *outerleft;
 
-	while (comp(*left, piv)) left++;
-	if (left >= outerleft + 32) {
-		// could be sorted
-		*pivp = piv;
-		for (T* p = outerleft + 1; p <= right; p++) {
-			if (comp(*p, *(p - 1))) {
-				*pivp = *outerleft;
-				goto not_sorted;
-			}
-		}
-		return NULL;
-	}
-not_sorted:
-	while (comp(piv, *right)) right--;
-
 	T swbuf[SWSZ];
 	T *lwr = left, *rwr = right, *sw = swbuf;
 
-	while (sw < swbuf + SWSZ - UNROLL && left <= right - UNROLL) {
-		for (int i = UNROLL; i--;) {
-			bool h = comp(*right, piv); *rwr = *sw = *right--; rwr -= !h; sw += h;
-		}
-	}
-	while (left <= right - UNROLL && (rwr > right + UNROLL || lwr < left - UNROLL)) {
-		while (rwr > right + UNROLL && left <= right - UNROLL) {
+	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
+		ptrdiff_t avail = std::min(right - left, SWSZ - (sw - swbuf));
+		T* endp = right - avail;
+		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
-				bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
+				int h = comp(*right, piv);
+				*rwr = *sw = *right--; rwr -= !h; sw += h;
 			}
 		}
-		while (lwr < left - UNROLL && left <= right - UNROLL) {
+	}
+
+	while (right - left >= UNROLL &&
+			(rwr - right > UNROLL || left - lwr > UNROLL)) {
+
+		while (rwr - right > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
-				bool h = comp(*right, piv); *rwr = *lwr = *right--; rwr -= !h; lwr += h;
+				int h = comp(*left, piv);
+				*lwr = *rwr = *left++; lwr += h; rwr -= !h;
+			}
+		}
+		while (left - lwr > UNROLL && right - left >= UNROLL) {
+			for (int i = UNROLL; i--;) {
+				int h = comp(*right, piv);
+				*rwr = *lwr = *right--; rwr -= !h; lwr += h;
 			}
 		}
 	}
 	while (rwr > right && left <= right) {
-		bool h = comp(*left, piv); *lwr = *rwr = *left++; lwr += h; rwr -= !h;
+		T x = *left++;
+		if (comp(x, piv)) *lwr++ = x;
+		else *rwr-- = x;
 	}
-	while (left <= right) {
+	while (lwr < left && left <= right) {
 		T x = *right--;
 		if (comp(x, piv)) *lwr++ = x;
 		else *rwr-- = x;
+	}
+	if (left == outerleft + 1) {
+		while (left <= right && !comp(*right, piv)) {
+			right--;
+			rwr--;
+		}
 	}
 	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	*outerleft = *rwr;
@@ -384,11 +391,9 @@ void blqsort(T* left, T* right, Compare comp) {
 		if (partszm1 <= SMALLPART) break;
 
 		T* mid = partition_large(left, right, comp);
-		if (mid == NULL) return; // already sortiert
 
-		if ((mid - left) * 16 < partszm1) {
-			blqsort(left, mid - 1, comp);
-
+		if (mid - left < partszm1 / 16) {
+			if (mid > left) blqsort(left, mid - 1, comp);
 			T piv = *mid;
 			mid += 1;
 			// collect duplicates
@@ -403,9 +408,9 @@ void blqsort(T* left, T* right, Compare comp) {
 
 			// second chance before fallback to heapsort
 			mid = partition_large(left, right, comp);
-			if ((mid - left) * 16 < partszm1) {
-				heap_sort(left, mid - 1, comp);
-				heap_sort(mid + 1, right, comp);
+			if (mid - left < partszm1 / 16) {
+				if (mid > left) heap_sort(left, mid - 1, comp);
+				if (mid < right) heap_sort(mid + 1, right, comp);
 				return;
 			}
 		}
@@ -520,8 +525,8 @@ void block_qsort(T* left0, T* right0, Compare comp) {
 		ptrdiff_t szmin = (szl < szr) ? szl : szr;
 
 		if (szmin * 16 < right0 - left0) {
-			heap_sort(left0, right - 1, comp);
-			heap_sort(right + 1, right0, comp);
+			if (right > left0) heap_sort(left0, right - 1, comp);
+			if (right < right0) heap_sort(right + 1, right0, comp);
 			return;
 		}
 		if (szl < szr) {
@@ -539,6 +544,11 @@ template <typename T, typename Compare = std::less<T>>
 void sort(T* first, T* last, Compare comp = Compare()) {
 
 	if (last - first < 2) return;
+	for (T* p = first + 1; p < last; p++) {
+		if (comp(*p, *(p - 1))) goto not_sorted;
+	}
+	return;
+not_sorted:
 
 	constexpr bool cheap =
 		std::is_trivially_copyable_v<T> &&
