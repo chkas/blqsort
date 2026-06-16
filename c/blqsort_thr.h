@@ -4,6 +4,12 @@
 #ifndef BLQSORT_THR_H
 #define BLQSORT_THR_H
 
+#if defined(__arm64__)
+	#define PREFER_IF 1
+#else
+	#define PREFER_IF 0
+#endif
+
 #ifndef BLQS_PREFIX
 #define BLQS_PREFIX bl
 #endif
@@ -21,7 +27,7 @@
 #define min(a, b) ((a) < (b)) ? a : b
 
 #define SMALLPART 1024
-#define SWSZ 1024
+#define SWSZ 512
 #define UNROLL 16
 
 static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
@@ -314,12 +320,25 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* lwr = left;
 
 	while (right - left >= UNROLL) for (int i = UNROLL; i--;) {
+#if PREFER_IF
+		BLQS_TYPE x = *left++;
+		if (BLQS_CMP(x, piv)) *lwr++ = x;
+		else *sw++ = x;
+#else
 		int h = BLQS_CMP(*left, piv);
 		*lwr = *sw = *left++; lwr += h; sw += !h;
+#endif
 	}
 	while (left <= right) {
+#if PREFER_IF
+		BLQS_TYPE x = *left++;
+		if (BLQS_CMP(x, piv)) *lwr++ = x;
+		else *sw++ = x;
+#else
 		int h = BLQS_CMP(*left, piv);
-		*lwr = *sw = *left++; lwr += h; sw += !h;
+		*lwr = *sw = *left++;
+		lwr += h; sw += !h;
+#endif
 	}
 	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
 	lwr -= 1;
@@ -346,7 +365,6 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	med7(left[3],left[13],left[23], piv, right[-22], right[-12], right[-2]);
 
 	left += 1;
-
 	*pivp = *outerleft;
 
 	BLQS_TYPE swbuf[SWSZ];
@@ -358,23 +376,46 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 		BLQS_TYPE* endp = right - avail;
 		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				BLQS_TYPE x = *right--;
+				if (BLQS_CMP(x, piv)) *sw++ = x;
+				else *rwr-- = x;
+#else
 				int h = BLQS_CMP(*right, piv);
-				*rwr = *sw = *right--; rwr -= !h; sw += h;
+				*rwr = *sw = *right--;
+				rwr -= !h; sw += h;
+#endif
 			}
 		}
 	}
 
-	while (right - left >= UNROLL && (rwr - right > UNROLL || left - lwr > UNROLL)) {
+	while (right - left >= UNROLL &&
+			(rwr - right > UNROLL || left - lwr > UNROLL)) {
+
 		while (rwr - right > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				BLQS_TYPE x = *left++;
+				if (BLQS_CMP(x, piv)) *lwr++ = x;
+				else *rwr-- = x;
+#else
 				int h = BLQS_CMP(*left, piv);
-				*lwr = *rwr = *left++; lwr += h; rwr -= !h;
+				*lwr = *rwr = *left++;
+				lwr += h; rwr -= !h;
+#endif
 			}
 		}
 		while (left - lwr > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				BLQS_TYPE x = *right--;
+				if (BLQS_CMP(x, piv)) *lwr++ = x;
+				else *rwr-- = x;
+#else
 				int h = BLQS_CMP(*right, piv);
-				*rwr = *lwr = *right--; rwr -= !h; lwr += h;
+				*rwr = *lwr = *right--;
+				rwr -= !h; lwr += h;
+#endif
 			}
 		}
 	}

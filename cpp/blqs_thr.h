@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: MIT
-// blqs.h - Threaded Branchless Quicksort
+// blqs_thr.h - Threaded Branchless Quicksort
 // (c) 2026 christof.kaser@gmail.com
 
 #ifndef BLQS_THR_H
 #define BLQS_THR_H
+
+#if defined(__arm64__)
+	#define PREFER_IF 1
+#else
+	#define PREFER_IF 0
+#endif
 
 #include <cstddef>
 #include <cstring>
@@ -19,8 +25,8 @@
 
 namespace blqs {
 
-constexpr int SMALLPART = 512;
-constexpr int SWSZ = 1024;
+constexpr int SMALLPART = 1024;
+constexpr int SWSZ = 512;
 constexpr int UNROLL = 16;
 
 constexpr int BLSZ = 512;
@@ -273,7 +279,6 @@ static inline void med7(T& a, T& b, T& c, T& d, T& e, T& f, T& g, Compare comp) 
 	sort2(d, f, comp); sort2(d, e, comp); \
 }
 
-
 template<typename T, typename Compare>
 static T* partition_small(T* left, T* right, Compare comp) {
 	T* outerleft = left;
@@ -289,17 +294,29 @@ static T* partition_small(T* left, T* right, Compare comp) {
 	right -= 3;
 
 	*pivp = *outerleft;
-
 	T swbuf[SMALLPART];
 	T *sw = swbuf, *lwr = left;
 
 	while (right - left >= UNROLL) for (int i = UNROLL; i--;) {
-		bool h = comp(*left, piv);
+#if PREFER_IF
+		T x = *left++;
+		if (comp(x, piv)) *lwr++ = x;
+		else *sw++ = x;
+#else
+		int h = comp(*left, piv);
 		*lwr = *sw = *left++; lwr += h; sw += !h;
+#endif
 	}
 	while (left <= right) {
-		bool h = comp(*left, piv);
-		*lwr = *sw = *left++; lwr += h; sw += !h;
+#if PREFER_IF
+		T x = *left++;
+		if (comp(x, piv)) *lwr++ = x;
+		else *sw++ = x;
+#else
+		int h = comp(*left, piv);
+		*lwr = *sw = *left++;
+		lwr += h; sw += !h;
+#endif
 	}
 	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	lwr -= 1;
@@ -334,8 +351,15 @@ static T* partition_large(T* left, T* right, Compare comp) {
 		T* endp = right - avail;
 		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				T x = *right--;
+				if (comp(x, piv)) *sw++ = x;
+				else *rwr-- = x;
+#else
 				int h = comp(*right, piv);
-				*rwr = *sw = *right--; rwr -= !h; sw += h;
+				*rwr = *sw = *right--;
+				rwr -= !h; sw += h;
+#endif
 			}
 		}
 	}
@@ -345,14 +369,28 @@ static T* partition_large(T* left, T* right, Compare comp) {
 
 		while (rwr - right > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				T x = *left++;
+				if (comp(x, piv)) *lwr++ = x;
+				else *rwr-- = x;
+#else
 				int h = comp(*left, piv);
-				*lwr = *rwr = *left++; lwr += h; rwr -= !h;
+				*lwr = *rwr = *left++;
+				lwr += h; rwr -= !h;
+#endif
 			}
 		}
 		while (left - lwr > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				T x = *right--;
+				if (comp(x, piv)) *lwr++ = x;
+				else *rwr-- = x;
+#else
 				int h = comp(*right, piv);
-				*rwr = *lwr = *right--; rwr -= !h; lwr += h;
+				*rwr = *lwr = *right--;
+				rwr -= !h; lwr += h;
+#endif
 			}
 		}
 	}

@@ -53,6 +53,7 @@ int main() {
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("Nearly sorted: %.2fs\n", time() - t0);
+	chksum_test(0x5ccf71d);
 
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() % 1000;
 	t0 = time();
@@ -77,6 +78,7 @@ int main() {
 	t0 = time();
 	std::sort(data, data + SIZE);
 	printf("Nearly sorted: %.2fs\n", time() - t0);
+	chksum_test(0x5ccf71d);
 
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() % 1000;
 	t0 = time();

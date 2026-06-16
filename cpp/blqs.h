@@ -2,14 +2,14 @@
 // blqs.h - Branchless Quicksort
 // (c) 2026 christof.kaser@gmail.com
 //
-// Fast generic sorting for arbitrary types with a C++ interface.
-//
-// Uses branchless partitioning and sorting networks for
-// trivial types and BlockQuicksort (Edelkamp & Weiß) for
-// complex types, with a fallback to heapsort.
-
 #ifndef BLQS_H
 #define BLQS_H
+
+#if defined(__arm64__)
+	#define PREFER_IF 1
+#else
+	#define PREFER_IF 0
+#endif
 
 #include <cstddef>
 #include <cstdint>
@@ -21,7 +21,7 @@
 namespace blqs {
 
 constexpr int SMALLPART = 1024;
-constexpr int SWSZ = 1024;
+constexpr int SWSZ = 512;
 constexpr int UNROLL = 16;
 
 constexpr long BLSZ = 512;
@@ -285,17 +285,30 @@ static T* partition_small(T* left, T* right, Compare comp) {
 	right -= 3;
 
 	*pivp = *outerleft;
-
 	T swbuf[SMALLPART];
 	T *sw = swbuf, *lwr = left;
 
 	while (right - left >= UNROLL) for (int i = UNROLL; i--;) {
-		bool h = comp(*left, piv);
-		*lwr = *sw = *left++; lwr += h; sw += !h;
+#if PREFER_IF
+		T x = *left++;
+		if (comp(x, piv)) *lwr++ = x;
+		else *sw++ = x;
+#else
+		int h = comp(*left, piv);
+		*lwr = *sw = *left++;
+		lwr += h; sw += !h;
+#endif
 	}
 	while (left <= right) {
-		bool h = comp(*left, piv);
-		*lwr = *sw = *left++; lwr += h; sw += !h;
+#if PREFER_IF
+		T x = *left++;
+		if (comp(x, piv)) *lwr++ = x;
+		else *sw++ = x;
+#else
+		int h = comp(*left, piv);
+		*lwr = *sw = *left++;
+		lwr += h; sw += !h;
+#endif
 	}
 	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	lwr -= 1;
@@ -330,8 +343,15 @@ static T* partition_large(T* left, T* right, Compare comp) {
 		T* endp = right - avail;
 		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				T x = *right--;
+				if (comp(x, piv)) *sw++ = x;
+				else *rwr-- = x;
+#else
 				int h = comp(*right, piv);
-				*rwr = *sw = *right--; rwr -= !h; sw += h;
+				*rwr = *sw = *right--;
+				rwr -= !h; sw += h;
+#endif
 			}
 		}
 	}
@@ -341,14 +361,28 @@ static T* partition_large(T* left, T* right, Compare comp) {
 
 		while (rwr - right > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				T x = *left++;
+				if (comp(x, piv)) *lwr++ = x;
+				else *rwr-- = x;
+#else
 				int h = comp(*left, piv);
-				*lwr = *rwr = *left++; lwr += h; rwr -= !h;
+				*lwr = *rwr = *left++;
+				lwr += h; rwr -= !h;
+#endif
 			}
 		}
 		while (left - lwr > UNROLL && right - left >= UNROLL) {
 			for (int i = UNROLL; i--;) {
+#if PREFER_IF
+				T x = *right--;
+				if (comp(x, piv)) *lwr++ = x;
+				else *rwr-- = x;
+#else
 				int h = comp(*right, piv);
-				*rwr = *lwr = *right--; rwr -= !h; lwr += h;
+				*rwr = *lwr = *right--;
+				rwr -= !h; lwr += h;
+#endif
 			}
 		}
 	}
