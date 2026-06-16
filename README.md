@@ -52,7 +52,7 @@ and used in the code like this:
 
 Since *Clang* on Linux also generates efficient code for the `if`-version, the following variant also might make sense:
 
-~~
+~~~
 #if defined(__GNUC__) && !defined(__clang__)
 	#define PREFER_IF 0
 #else
