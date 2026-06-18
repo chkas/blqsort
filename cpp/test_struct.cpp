@@ -25,16 +25,22 @@ double time() {
     return diff.count();
 }
 
+void init() {
+	for (int i = 0; i < SIZE; i++) {
+		data[i].id = rand();
+		data[i].value = i;
+	}
+}
 int main() {
 	double t0;
 	printf("Sorting %d million structs ...\n", SIZE / 1000000);
 
-	for (int i = 0; i < SIZE; i++) data[i].id = rand();
+	init();
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("blqs::sort: %.2fs\n", time() - t0);
 
-	for (int i = 0; i < SIZE; i++) data[i].id = rand();
+	init();
 	t0 = time();
 	std::sort(data, data + SIZE);
 	printf("std::sort: %.2fs\n", time() - t0);

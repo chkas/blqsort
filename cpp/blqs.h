@@ -586,8 +586,8 @@ not_sorted:
 
 	constexpr bool cheap =
 		std::is_trivially_copyable_v<T> &&
-		sizeof(T) <= 16 &&
-		std::is_default_constructible_v<T>;
+		std::is_trivially_default_constructible_v<T> &&
+		sizeof(T) <= 16;
 
 	if constexpr (cheap) {
 		blqsort(first, last - 1, comp);
