@@ -429,11 +429,9 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 		if (BLQS_CMP(x, piv)) *lwr++ = x;
 		else *rwr-- = x;
 	}
-	if (left == outerleft + 1) {
-		while (left <= right && !BLQS_CMP(*right, piv)) {
-			right--;
-			rwr--;
-		}
+	while (left <= right && !BLQS_CMP(*right, piv)) {
+		right--;
+		rwr--;
 	}
 	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
 	*outerleft = *rwr;
