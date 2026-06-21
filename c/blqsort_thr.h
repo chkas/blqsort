@@ -419,15 +419,17 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 			}
 		}
 	}
-	while (rwr > right && left <= right) {
-		BLQS_TYPE x = *left++;
-		if (BLQS_CMP(x, piv)) *lwr++ = x;
-		else *rwr-- = x;
-	}
-	while (lwr < left && left <= right) {
-		BLQS_TYPE x = *right--;
-		if (BLQS_CMP(x, piv)) *lwr++ = x;
-		else *rwr-- = x;
+	while ((lwr < left||rwr > right) && left <= right) {
+		while (rwr > right && left <= right) {
+			BLQS_TYPE x = *left++;
+			if (BLQS_CMP(x, piv)) *lwr++ = x;
+			else *rwr-- = x;
+		}
+		while (lwr < left && left <= right) {
+			BLQS_TYPE x = *right--;
+			if (BLQS_CMP(x, piv)) *lwr++ = x;
+			else *rwr-- = x;
+		}
 	}
 	while (left <= right && !BLQS_CMP(*right, piv)) {
 		right--;

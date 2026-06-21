@@ -386,15 +386,17 @@ static T* partition_large(T* left, T* right, Compare comp) {
 			}
 		}
 	}
-	while (rwr > right && left <= right) {
-		T x = *left++;
-		if (comp(x, piv)) *lwr++ = x;
-		else *rwr-- = x;
-	}
-	while (lwr < left && left <= right) {
-		T x = *right--;
-		if (comp(x, piv)) *lwr++ = x;
-		else *rwr-- = x;
+	while ((lwr < left||rwr > right) && left <= right) {
+		while (rwr > right && left <= right) {
+			T x = *left++;
+			if (comp(x, piv)) *lwr++ = x;
+			else *rwr-- = x;
+		}
+		while (lwr < left && left <= right) {
+			T x = *right--;
+			if (comp(x, piv)) *lwr++ = x;
+			else *rwr-- = x;
+		}
 	}
 	while (left <= right && !comp(*right, piv)) {
 		right--;
