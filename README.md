@@ -82,8 +82,7 @@ For larger parts, it uses a median-of-medians strategy to find a good pivot. In 
 critical partitioning loops are explicitly unrolled.
 
 For 2 to 16 elements, the algorithm uses custom sorting networks. This approach requires a
-separate code path for each size but sorts small subsets with very few swaps using a branchless *sort-2* primitive. [Source for sorting networks](https://bertdobbelaere.github.io/
-sorting_networks.html)
+separate code path for each size but sorts small subsets with very few swaps using a branchless *sort-2* primitive. [Source for sorting networks](https://bertdobbelaere.github.io/sorting_networks.html)
 
 ## C++
 

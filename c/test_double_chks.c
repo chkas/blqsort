@@ -43,12 +43,21 @@ int main() {
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() / 1024.0;
 	t0 = ts();
 	blqsort(data, SIZE);
-	printf("Random:\t%.2fs\n", ts() - t0);
+	printf("Random: %.2fs\n", ts() - t0);
 	chksum_test(0x8f244fed);
+	t0 = ts();
+	blqsort(data, SIZE);
+	printf("Sorted: %.2fs\n", ts() - t0);
+
+	for (int i = 0; i < SIZE / 2; i++) {
+		double h = data[i];
+		data[i] = data[SIZE - i - 1];
+		data[SIZE - i - 1] = h;
+	}
 
 	t0 = ts();
 	blqsort(data, SIZE);
-	printf("Sorted:\t%.2fs\n", ts() - t0);
+	printf("Reverse Sorted: %.2fs\n", ts() - t0);
 
 	for (int i = 0; i < SIZE / 10; i++) data[i] = mrand() / 1024.0;
 	t0 = ts();

@@ -25,7 +25,7 @@
 
 #include <stddef.h>
 #include <string.h>
-#define min(a, b) ((a) < (b)) ? a : b
+#define blqsmin(a, b) (((a) < (b)) ? (a) : (b))
 
 #define SMALLPART 1024
 #define SWSZ 512
@@ -58,12 +58,15 @@ static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	}
 }
 
-#define sort2(a, b) do {  \
+#define swap(a, b) do { BLQS_TYPE h = a; a = b; b = h; \
+} while(0)
+
+#define sort2(a, b) do { \
 	BLQS_TYPE x = a; \
 	BLQS_TYPE y = b; \
 	unsigned m = BLQS_CMP(x, y); \
-	a = m ? x : y;  \
-	b = m ? y : x;  \
+	a = m ? x : y; \
+	b = m ? y : x; \
 } while(0)
 
 #define sort3(a, b, c) do { \
@@ -90,12 +93,12 @@ static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 } while(0)
 
 #define sort7(a, b, c, d, e, f, g) do { \
-	sort2(a, b); sort2(c, d); sort2(a, c); \
-	sort2(b, d); sort2(b, c); sort2(e, f); \
-	sort2(e, g); sort2(f, g); sort2(a, e); \
-	sort2(b, f); sort2(c, g); sort2(b, e); \
-	sort2(d, g); sort2(c, e); sort2(b, c); \
-	sort2(d, f); sort2(d, e); \
+	sort2(a, g); sort2(c, d); sort2(e, f); \
+	sort2(a, c); sort2(b, e); sort2(d, g); \
+	sort2(a, b); sort2(c, f); sort2(d, e); \
+	sort2(b, c); sort2(e, g); \
+	sort2(c, d); sort2(e, f); \
+	sort2(b, c); sort2(d, e); sort2(f, g); \
 } while(0)
 
 #define sort8(a,b,c,d,e,f,g,h) do { \
@@ -350,20 +353,38 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 // *****************************************************************************
 
+#ifndef BLQS_RAND
+#define BLQS_RAND
+static uint64_t blqs_seed;
+static inline uint64_t blqs_rand(void) {
+	if (!blqs_seed) blqs_seed = (uintptr_t)&blqs_seed ^ (uint64_t)time(NULL);
+	uint64_t x = blqs_seed;
+	x ^= x << 13;
+	x ^= x >> 7;
+	x ^= x << 17;
+	blqs_seed = x;
+	return x;
+}
+#endif
+
 static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
 
 	BLQS_TYPE piv = *pivp;
 
-	med5(left[1],left[2],left[3],left[4],left[5]);
-	med5(left[11],left[12],left[13],left[14],left[15]);
-	med5(left[21],left[22],left[23],left[24],left[25]);
+	unsigned r = blqs_rand();
+	int j = r & 7;
+	med5(left[1 + j], left[2 + j], left[3 + j], left[4 + j], left[5 + j]);
+	med5(left[11 + j], left[12 + j], left[13 + j], left[14 + j], left[15 + j]);
+	med5(left[21 + j], left[22 + j], left[23 + j], left[24 + j], left[25 + j]);
 	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2]);
-	med5(right[-24], right[-23], right[-22], right[-21], right[-20]);
-	med5(right[-14], right[-13], right[-12], right[-11], right[-10]);
-	med5(right[-4], right[-3], right[-2], right[-1], right[0]);
-	med7(left[3],left[13],left[23], piv, right[-22], right[-12], right[-2]);
+	med5(right[-24 - j], right[-23 - j], right[-22 - j], right[-21 - j], right[-20 - j]);
+	med5(right[-14 - j], right[-13 - j], right[-12 - j], right[-11 - j], right[-10 - j]);
+	med5(right[-4 - j], right[-3 - j], right[-2 - j], right[-1 - j], right[ 0 - j]);
+
+	med7(left[3 + j], left[13 + j], left[23 + j], piv,	right[-22 - j], right[-12 - j],
+		right[-2 - j]	);
 
 	left += 1;
 	*pivp = *outerleft;
@@ -373,7 +394,7 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE *lwr = left;
 
 	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
-		ptrdiff_t avail = min(right - left, SWSZ - (sw - swbuf));
+		ptrdiff_t avail = blqsmin(right - left, SWSZ - (sw - swbuf));
 		BLQS_TYPE* endp = right - avail;
 		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
@@ -466,9 +487,7 @@ static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 			// collect duplicates
 			for (BLQS_TYPE* p = mid; p <= right; p++) {
 				if (!BLQS_CMP(piv, *p)) {
-					BLQS_TYPE h = *mid;
-					*mid = *p;
-					*p = h;
+					swap(*mid, *p);
 					mid++;
 				}
 			}
@@ -519,17 +538,27 @@ static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 #undef sort16
 #undef sort17
 #undef sort18
-
-// ------------------------  public API  -----------------------------
+#undef blqsmin
+// ------------------------ public API -----------------------------
 
 static void BLQS(qsort)(BLQS_TYPE* data, int len) {
 	if (len < 2) return;
 	for (BLQS_TYPE* p = data + 1; p < data + len; p++) {
-		if (BLQS_CMP(*p, *(p - 1))) goto not_sorted;
+		if (BLQS_CMP(*p, *(p - 1))) goto not_asc_sorted;
 	}
 	return;
-not_sorted:
+not_asc_sorted:
+	for (BLQS_TYPE* p = data + 1; p < data + len; p++) {
+		if (BLQS_CMP(*(p - 1), *p)) goto not_desc_sorted;
+	}
+	for (ptrdiff_t i = 0; i < len / 2; i++) {
+		swap(data[i], data[len - i - 1]);
+	}
+	return;
+not_desc_sorted:
 	BLQS(sortr)(data, data + len - 1);
 }
+
+#undef swap
 
 #endif

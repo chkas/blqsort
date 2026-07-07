@@ -9,6 +9,14 @@
 constexpr int SIZE = 5000000;
 std::string data[SIZE];
 
+void test() {
+	for (int i = 1; i < SIZE; i++) {
+		if (data[i] < data[i - 1]) {
+			printf("ERROR ORDER\n");
+			return;
+		}
+	}
+}
 double time() {
 	static auto time0 = std::chrono::high_resolution_clock::now();
     auto t = std::chrono::high_resolution_clock::now();
@@ -30,4 +38,5 @@ int main(int argc, char* argv[]) {
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("blqs::sort %.2fs\n", time() - t0);
+	test();
 }
