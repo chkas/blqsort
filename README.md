@@ -66,20 +66,21 @@ Since *Clang* on Linux also generates efficient code for the `if`-version, the f
 
 The strategy of using an auxiliary buffer for **branchless partitioning** is inspired by
 [fluxsort](https://github.com/scandum/fluxsort). The “auxiliary buffer” here means a
-1024‑element stack array, not heap memory.
+512‑element array.
 
-First, 1024 elements are copied from one side into an auxiliary buffer to make room for
-subsequent operations. Then, we alternately copy a 1024-element block to the left and right in a branchless manner. The left pointer is only incremented if the element is smaller than the pivot, otherwise, the right pointer is incremented - branchless, of course.
+First, about 256 elements are copied from one side into an auxiliary buffer to make room for subsequent operations. Then, we alternately copy a block to the left and right in a branchless manner. The left pointer
+is only incremented if the element is smaller than the pivot, otherwise, the right pointer is
+incremented - branchless, of course.
 
-This involves more more than double the necessary copy operations. For data types that are cheap to copy, however, this is much less expensive than the branch mispredictions that would
-otherwise occur.
+This involves more more than the necessary copy operations. For data types that are cheap to copy, however, this is much less expensive than the branch mispredictions that would otherwise occur.
 
 ### Pivot strategy, bad input and sorting network
 
-To avoid the `O(n²)` runtime caused by bad input data, the program can group identical elements together and switch to *heapsort* for that specific part if it detects a big imbalance during partitioning. The program also checks if a partition is already sorted.
+To avoid the `O(n²)` runtime caused by bad input data, the program can group identical elements together
+and switch to *heapsort* for that specific part if it detects a big imbalance during partitioning.
 
-For larger parts, it uses a median-of-medians strategy to find a good pivot. In addition,
-critical partitioning loops are explicitly unrolled.
+For larger parts, it uses a median-of-medians strategy to find a good pivot. In addition, critical
+partitioning loops are explicitly unrolled.
 
 For 2 to 16 elements, the algorithm uses custom sorting networks. This approach requires a
 separate code path for each size but sorts small subsets with very few swaps using a branchless *sort-2* primitive. [Source for sorting networks](https://bertdobbelaere.github.io/sorting_networks.html)
