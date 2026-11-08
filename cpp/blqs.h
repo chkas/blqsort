@@ -24,7 +24,7 @@
 #include <random>
 static thread_local uint64_t blqs_seed;
 
-static inline uint64_t blqs_rand(void) {
+static inline unsigned blqs_rand(void) {
 	if (!blqs_seed) {
 		std::random_device rd;
 		blqs_seed =
@@ -38,7 +38,7 @@ static inline uint64_t blqs_rand(void) {
 	x ^= x >> 7;
 	x ^= x << 17;
 	blqs_seed = x;
-	return x;
+	return (unsigned)x;
 }
 #endif
 
@@ -257,7 +257,7 @@ inline void heap_sift_down(T* left, ptrdiff_t n, ptrdiff_t j, T& k, Compare& com
 }
 
 template<typename T, typename Compare>
-void heap_sort(T* left, T* right, Compare comp) {
+static void heap_sort(T* left, T* right, Compare comp) {
 	ptrdiff_t n = right - left + 1;
 	if (n < 2) return;
 
@@ -295,7 +295,7 @@ static inline void med7(T& a, T& b, T& c, T& d, T& e, T& f, T& g, Compare comp) 
 }
 
 template<typename T, typename Compare>
-static T* partition_small(T* left, T* right, Compare comp) {
+static inline T* partition_small(T* left, T* right, Compare comp) {
 	static_assert(std::is_trivially_copyable_v<T>);
 
 	T* outerleft = left;
@@ -344,15 +344,14 @@ static T* partition_small(T* left, T* right, Compare comp) {
 }
 
 template<typename T, typename Compare>
-static T* partition_large(T* left, T* right, Compare comp) {
+static inline T* partition_large(T* left, T* right, Compare comp) {
 	static_assert(std::is_trivially_copyable_v<T>);
 
 	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 	T piv = *pivp;
 
-	unsigned r = blqs_rand();
-	int j = r & 7;
+	int j = blqs_rand() & 7;
 	med5(left[1 + j], left[2 + j], left[3 + j], left[4 + j], left[5 + j], comp);
 	med5(left[11 + j], left[12 + j], left[13 + j], left[14 + j], left[15 + j], comp);
 	med5(left[21 + j], left[22 + j], left[23 + j], left[24 + j], left[25 + j], comp);
@@ -441,7 +440,7 @@ static T* partition_large(T* left, T* right, Compare comp) {
 }
 
 template<typename T, typename Compare>
-void smallsort(T* left, T* right, Compare comp) {
+static void smallsort(T* left, T* right, Compare comp) {
 	while (right - left > 15) {
 		T* mid = partition_small(left, right, comp);
 		smallsort(left, mid - 1, comp);
@@ -451,7 +450,7 @@ void smallsort(T* left, T* right, Compare comp) {
 }
 
 template<typename T, typename Compare>
-void blqsort(T* left, T* right, Compare comp) {
+static void blqsort(T* left, T* right, Compare comp) {
 	while (1) {
 		ptrdiff_t partszm1 = right - left;
 		if (partszm1 <= SMALLPART) break;
@@ -515,7 +514,7 @@ static inline void med3(T* a, T* b, T* c, Compare comp) {
 // Based on BlockQuicksort by Edelkamp and Weiß
 
 template <typename T, typename Compare>
-void block_qsort(T* left0, T* right0, Compare comp) {
+static void block_qsort(T* left0, T* right0, Compare comp) {
 
 	while (right0 - left0 > 16) {
 
