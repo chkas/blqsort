@@ -305,7 +305,7 @@ static inline T* partition_small(T* left, T* right, Compare comp) {
 	static_assert(std::is_trivially_copyable_v<T>);
 
 	T* outerleft = left;
-	T* pivp = left + 8;
+	T* pivp = left + (right - left) / 2;
 
 	T piv = *pivp;
 	T l1 = left[1], l2 = left[2], l3 = left[3];

@@ -304,7 +304,7 @@ static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
 static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE* outerleft = left;
-	BLQS_TYPE* pivp = left + 8;
+	BLQS_TYPE* pivp = left + (right - left) / 2;
 
 	BLQS_TYPE piv = *pivp;
 
