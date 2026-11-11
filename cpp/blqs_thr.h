@@ -50,7 +50,7 @@ static inline unsigned blqs_rand(void) {
 namespace blqs {
 
 constexpr int SMALLPART = 1024;
-constexpr int SWSZ = 512;
+constexpr int SWSZ = 384;
 constexpr int UNROLL = 16;
 
 constexpr int BLSZ = 512;
@@ -308,13 +308,13 @@ static inline T* partition_small(T* left, T* right, Compare comp) {
 	T* pivp = left + (right - left) / 2;
 
 	T piv = *pivp;
-	T l1 = left[1], l2 = left[2], l3 = left[3];
-	T r2 = right[-2], r1 = right[-1], r0 = *right;
+	T l1 = left[1], l2 = left[2], l3 = pivp[-1];
+	T r2 = pivp[1], r1 = right[-1], r0 = *right;
 	med7(l1, l2, l3, piv, r2, r1, r0, comp);
-	left[1] = l1; left[2] = l2; left[3] = l3;
-	right[-2] = r2; right[-1] = r1; *right = r0;
-	left += 4;
-	right -= 3;
+	left[1] = l1; left[2] = l2; pivp[-1] = l3;
+	pivp[1] = r2; right[-1] = r1; *right = r0;
+	left += 3;
+	right -= 2;
 
 	*pivp = *outerleft;
 	T swbuf[SMALLPART];
@@ -532,7 +532,7 @@ static void blqsort(T* left, T* right, Compare comp) {
 				n_threads--;
 			}
 		}
-		// --------------------------------------------------------------------
+		// -----------------------------------------------------------
 
 		if (mid - left < right - mid) {
 			blqsort(left, mid - 1, comp);
@@ -655,8 +655,7 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 			if (right < right0) heap_sort(right + 1, right0, comp);
 			return;
 		}
-
-// ------------     threads   -------------
+		// ---------------------- threads ---------------------------
 		if (right - left0 > THREAD_MIN_OBJECT && n_threads < max_threads) {
 			n_threads++;
 			try {
@@ -668,7 +667,7 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 			left0 = right + 1;
 			continue;
 		}
-// -------------------------------------------
+		// -----------------------------------------------------------
 		if (right - left0 < right - mid) {
 			block_qsort(left0, right - 1, comp);
 			left0 = right + 1;

@@ -28,7 +28,7 @@
 #define blqsmin(a, b) (((a) < (b)) ? (a) : (b))
 
 #define SMALLPART 1024
-#define SWSZ 512
+#define SWSZ 384
 #define UNROLL 16
 
 static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
@@ -309,13 +309,13 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE piv = *pivp;
 
-	BLQS_TYPE l1 = left[1],l2 = left[2],l3 = left[3];
-	BLQS_TYPE r2 = right[-2], r1 = right[-1], r0 = *right;
-	med7(l1,l2,l3, piv, r2, r1, r0);
-	left[1] = l1; left[2] = l2; left[3] = l3;
-	right[-2] = r2; right[-1] = r1; *right = r0;
-	left += 4;
-	right -= 3;
+	BLQS_TYPE l1 = left[1], l2 = left[2], l3 = pivp[-1];
+	BLQS_TYPE r2 = pivp[1], r1 = right[-1], r0 = *right;
+	med7(l1, l2, l3, piv, r2, r1, r0);
+	left[1] = l1; left[2] = l2; pivp[-1] = l3;
+	pivp[1] = r2; right[-1] = r1; *right = r0;
+	left += 3;
+	right -= 2;
 
 	*pivp = *outerleft;
 
