@@ -435,10 +435,10 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 			else *rwr-- = x;
 		}
 	}
-	while (left <= right && !comp(*right, piv)) {
-		right--;
-		rwr--;
-	}
+	while (left <= right) {
+		if (comp(*left, piv)) { left++; lwr++; }
+		else { std::swap(*left, *right); right--; rwr--; }
+ 	}
 	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	*outerleft = *rwr;
 	*rwr = piv;
