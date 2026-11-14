@@ -48,31 +48,21 @@ int main() {
 	printf("Random: %.2fs\n", time() - t0);
 	chksum_test(0x8f244fed);
 
-	t0 = time();
-	blqs::sort(data, data + SIZE);
-	printf("Sorted: %.2fs\n", time() - t0);
-	chksum_test(0x8f244fed);
-
-	for (int i = 0; i < SIZE / 100; i++) {
-		std::swap(data[mrand() % SIZE], data[mrand() % SIZE]);
-	}
-	chksum_test(0xc558325);
+	mrand_init();
+	for (int i = 0; i < SIZE / 1000; i++) data[mrand() % SIZE] = mrand() / 1024.0;
 
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("Nearly sorted: %.2fs\n", time() - t0);
-	chksum_test(0x8f244fed);
+	chksum_test(0xd86ac1d8);
 
-	for (int i = 0; i < SIZE / 2; i++) {
-		std::swap(data[i], data[SIZE - i - 1]);
-	}
-	for (int i = 0; i < SIZE / 100; i++) {
-		std::swap(data[mrand() % SIZE], data[mrand() % SIZE]);
-	}
+	mrand_init();
+	for (int i = 0; i < SIZE / 2; i++) std::swap(data[i], data[SIZE - i - 1]);
+	for (int i = 0; i < SIZE / 1000; i++) data[mrand() % SIZE] = mrand() / 1024.0;
 	t0 = time();
 	blqs::sort(data, data + SIZE);
 	printf("Nearly reverse sorted: %.2fs\n", time() - t0);
-	chksum_test(0x8f244fed);
+	chksum_test(0x6f63df8c);
 
 	mrand_init();
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() % 1000;
@@ -82,9 +72,8 @@ int main() {
 	chksum_test(0x24b2a9c5);
 
 	printf("\n");
-	mrand_init();
-	// ---------------------------------------------
 
+	mrand_init();
 	printf("std::sort - sorting %d million doubles ...\n", SIZE / 1000000);
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() / 1024.0;
 	t0 = time();
@@ -92,29 +81,20 @@ int main() {
 	printf("Random: %.2fs\n", time() - t0);
 	chksum_test(0x8f244fed);
 
-	t0 = time();
-	std::sort(data, data + SIZE);
-	printf("Sorted: %.2fs\n", time() - t0);
-	chksum_test(0x8f244fed);
-
-	for (int i = 0; i < SIZE / 100; i++) {
-		std::swap(data[mrand() % SIZE], data[mrand() % SIZE]);
-	}
+	mrand_init();
+	for (int i = 0; i < SIZE / 1000; i++) data[mrand() % SIZE] = mrand() / 1024.0;
 	t0 = time();
 	std::sort(data, data + SIZE);
 	printf("Nearly sorted: %.2fs\n", time() - t0);
-	chksum_test(0x8f244fed);
+	chksum_test(0xd86ac1d8);
 
-	for (int i = 0; i < SIZE / 2; i++) {
-		std::swap(data[i], data[SIZE - i - 1]);
-	}
-	for (int i = 0; i < SIZE / 100; i++) {
-		std::swap(data[mrand() % SIZE], data[mrand() % SIZE]);
-	}
+	mrand_init();
+	for (int i = 0; i < SIZE / 2; i++) std::swap(data[i], data[SIZE - i - 1]);
+	for (int i = 0; i < SIZE / 1000; i++) data[mrand() % SIZE] = mrand() / 1024.0;
 	t0 = time();
 	std::sort(data, data + SIZE);
 	printf("Nearly reverse sorted: %.2fs\n", time() - t0);
-	chksum_test(0x8f244fed);
+	chksum_test(0x6f63df8c);
 
 	mrand_init();
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() % 1000;

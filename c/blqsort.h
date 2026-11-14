@@ -28,7 +28,7 @@
 #include <time.h>
 #define blqsmin(a, b) (((a) < (b)) ? (a) : (b))
 
-#define SMALLPART 1024
+#define SMALLPART 2048
 #define SWSZ 384
 #define UNROLL 16
 
@@ -305,16 +305,38 @@ static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
 
 static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
-	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
-
 	BLQS_TYPE piv = *pivp;
 
 	BLQS_TYPE l1 = left[1], l2 = left[2], l3 = pivp[-1];
 	BLQS_TYPE r2 = pivp[1], r1 = right[-1], r0 = *right;
+
+	int cnt = !BLQS_CMP(l2, l1) + !BLQS_CMP(l3, l2) + !BLQS_CMP(piv, l3) +
+		!BLQS_CMP(r2, piv) + !BLQS_CMP(r1, r2) + !BLQS_CMP(r0, r1);
+	if (cnt > 5) {
+		int nwrong = 0;
+		for (BLQS_TYPE* pi = left + 1; pi <= right; pi++) {
+			nwrong += BLQS_CMP(*pi, *(pi - 1));
+			if (nwrong > 2) goto continue_partition;
+		}
+		if (nwrong == 0) return NULL;	// already sorted
+		// insertion sort
+		for (BLQS_TYPE* pi = left + 1; pi <= right; pi++) {
+			BLQS_TYPE v = *pi;
+			BLQS_TYPE* pj = pi;
+			while (pj > left && BLQS_CMP(v, *(pj - 1))) {
+				*pj = *(pj - 1);
+				pj--;
+			}
+			*pj = v;
+		}
+		return NULL;
+	}
+continue_partition:
 	med7(l1, l2, l3, piv, r2, r1, r0);
 	left[1] = l1; left[2] = l2; pivp[-1] = l3;
 	pivp[1] = r2; right[-1] = r1; *right = r0;
+	BLQS_TYPE* outerleft = left;
 	left += 3;
 	right -= 2;
 
@@ -414,7 +436,7 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	}
 	int swsz = sw - swbuf;
 	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
-		// the data isn't that random, so let the branch predictor work
+		// the data isn't that random, so the branch predictor works
 		// includes the case of empty swap buffer, where this is necessary
 		memcpy(right + 1, swbuf, swsz * sizeof(BLQS_TYPE));
 		right += swsz;
@@ -483,6 +505,7 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 static void BLQS(smallsort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	while (right - left > 17) {
 		BLQS_TYPE* mid = BLQS(partition_small)(left, right);
+		if (mid == NULL) return;
 		BLQS(smallsort)(left, mid - 1);
 		left = mid + 1;
 	}

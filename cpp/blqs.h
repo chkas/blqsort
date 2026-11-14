@@ -44,7 +44,7 @@ static inline unsigned blqs_rand(void) {
 
 namespace blqs {
 
-constexpr int SMALLPART = 1024;
+constexpr int SMALLPART = 2048;
 constexpr int SWSZ = 384;
 constexpr int UNROLL = 16;
 
@@ -297,16 +297,36 @@ static inline void med7(T& a, T& b, T& c, T& d, T& e, T& f, T& g, Compare comp) 
 template<typename T, typename Compare>
 static inline T* partition_small(T* left, T* right, Compare comp) {
 	static_assert(std::is_trivially_copyable_v<T>);
-
-	T* outerleft = left;
 	T* pivp = left + (right - left) / 2;
 
 	T piv = *pivp;
 	T l1 = left[1], l2 = left[2], l3 = pivp[-1];
 	T r2 = pivp[1], r1 = right[-1], r0 = *right;
+	int cnt = !comp(l2, l1) + !comp(l3, l2) + !comp(piv, l3) + !comp(r2, piv) + !comp(r1, r2) + !comp(r0, r1);
+	if (cnt > 5) {
+		int nwrong = 0;
+		for (T* pi = left + 1; pi <= right; pi++) {
+			nwrong += comp(*pi, *(pi - 1));
+			if (nwrong > 2) goto continue_partition;
+		}
+		if (nwrong == 0) return NULL;	// already sorted
+		// insertion sort
+		for (T* pi = left + 1; pi <= right; pi++) {
+			T v = *pi;
+			T* pj = pi;
+			while (pj > left && comp(v, *(pj - 1))) {
+				*pj = *(pj - 1);
+				pj--;
+			}
+			*pj = v;
+		}
+		return NULL;
+	}
+continue_partition:
 	med7(l1, l2, l3, piv, r2, r1, r0, comp);
 	left[1] = l1; left[2] = l2; pivp[-1] = l3;
 	pivp[1] = r2; right[-1] = r1; *right = r0;
+	T* outerleft = left;
 	left += 3;
 	right -= 2;
 
@@ -389,8 +409,8 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 	}
 	int swsz = sw - swbuf;
 	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
-		// the data isn't that random, so let the branch predictor work
-		// includes the case of empty swap buffer, where this is necessary
+		// the data isn't that random, so the branch predictor works (lumoto)
+		// includes the case of empty swap space, where this is necessary
 
 		std::memcpy(right + 1, swbuf, swsz * sizeof(T));
 		right += swsz;
@@ -458,6 +478,7 @@ template<typename T, typename Compare>
 static void smallsort(T* left, T* right, Compare comp) {
 	while (right - left > 15) {
 		T* mid = partition_small(left, right, comp);
+		if (mid == NULL) return;
 		smallsort(left, mid - 1, comp);
 		left = mid + 1;
 	}

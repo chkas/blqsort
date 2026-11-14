@@ -59,18 +59,20 @@ int main() {
 	printf("Sorted: %.2fs\n", ts() - t0);
 	chksum_test(0x8f244fed);
 
-	for (int i = 0; i < SIZE / 100; i++) swap(&data[mrand() % SIZE], &data[mrand() % SIZE]);
+	mrand_init();
+	for (int i = 0; i < SIZE / 1000; i++) data[mrand() % SIZE] = mrand() / 1024.0;
 	t0 = ts();
 	blqsort(data, SIZE);
 	printf("Nearly sorted: %.2fs\n", ts() - t0);
-	chksum_test(0x8f244fed);
+	chksum_test(0xd86ac1d8);
 
+	mrand_init();
 	for (int i = 0; i < SIZE / 2; i++) swap(&data[i], &data[SIZE - i - 1]);
-	for (int i = 0; i < SIZE / 100; i++) swap(&data[mrand() % SIZE], &data[mrand() % SIZE]);
+	for (int i = 0; i < SIZE / 1000; i++) data[mrand() % SIZE] = mrand() / 1024.0;
 	t0 = ts();
 	blqsort(data, SIZE);
 	printf("Nearly reverse Sorted: %.2fs\n", ts() - t0);
-	chksum_test(0x8f244fed);
+	chksum_test(0x6f63df8c);
 
 	mrand_init();
 	for (int i = 0; i < SIZE; i++) data[i] = mrand() % 1000;
