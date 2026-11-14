@@ -12,20 +12,20 @@ __int128 data[SIZE];
 
 double time() {
 	static auto time0 = std::chrono::high_resolution_clock::now();
-    auto t = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff = t - time0;
-    return diff.count();
+	auto t = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> diff = t - time0;
+	return diff.count();
 }
 int main() {
-    double t0;
+	double t0;
 
-    for (int i = 0; i < SIZE; i++) data[i] = rand();
-    t0 = time();
-    blqs::sort(data, data + SIZE);
-    printf("blqs::sort %.2fs\n", time() - t0);
+	for (int i = 0; i < SIZE; i++) data[i] = rand();
+	t0 = time();
+	blqs::sort(data, data + SIZE);
+	printf("blqs::sort %.2fs\n", time() - t0);
 
-    for (int i = 0; i < SIZE; i++) data[i] = rand();
-    t0 = time();
-    std::sort(data, data + SIZE);
-    printf("std::sort %.2fs\n", time() - t0);
+	for (int i = 0; i < SIZE; i++) data[i] = rand();
+	t0 = time();
+	std::sort(data, data + SIZE);
+	printf("std::sort %.2fs\n", time() - t0);
 }

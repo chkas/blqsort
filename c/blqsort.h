@@ -25,6 +25,7 @@
 
 #include <stddef.h>
 #include <string.h>
+#include <time.h>
 #define blqsmin(a, b) (((a) < (b)) ? (a) : (b))
 
 #define SMALLPART 1024
@@ -393,6 +394,7 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE *rwr = right, *sw = swbuf;
 	BLQS_TYPE *lwr = left;
 
+	BLQS_TYPE *right0 = right;
 	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
 		ptrdiff_t avail = blqsmin(right - left, SWSZ - (sw - swbuf));
 		BLQS_TYPE* endp = right - avail;
@@ -409,6 +411,23 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 #endif
 			}
 		}
+	}
+	int swsz = sw - swbuf;
+	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
+		// the data isn't that random, so let the branch predictor work
+		// includes the case of empty swap buffer, where this is necessary
+		memcpy(right + 1, swbuf, swsz * sizeof(BLQS_TYPE));
+		right += swsz;
+		while (left <= right) {
+			if (BLQS_CMP(*left, piv)) left++;
+			else {
+				swap(*left, *right);
+				right--;
+			}
+		}
+		*outerleft = *right;
+		*right = piv;
+		return right;
 	}
 
 	while (right - left >= UNROLL &&
@@ -453,10 +472,6 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 			else *rwr-- = x;
 		}
 	}
-	while (left <= right) {
-		if (BLQS_CMP(*left, piv)) { left++; lwr++; }
-		else { swap(*left, *right); right--; rwr--; }
- 	}
 	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
 	*outerleft = *rwr;
 	*rwr = piv;

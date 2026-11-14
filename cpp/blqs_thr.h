@@ -375,6 +375,7 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 	T swbuf[SWSZ];
 	T *lwr = left, *rwr = right, *sw = swbuf;
 
+	T *right0 = right;
 	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
 		ptrdiff_t avail = std::min(right - left, SWSZ - (sw - swbuf));
 		T* endp = right - avail;
@@ -391,6 +392,24 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 #endif
 			}
 		}
+	}
+	int swsz = sw - swbuf;
+	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
+		// the data isn't that random, so let the branch predictor work
+		// includes the case of empty swap buffer, where this is necessary
+
+		std::memcpy(right + 1, swbuf, swsz * sizeof(T));
+		right += swsz;
+		while (left <= right) {
+			if (comp(*left, piv)) left++;
+			else {
+				std::swap(*left, *right);
+				right--;
+			}
+		}
+		*outerleft = *right;
+		*right = piv;
+		return right;
 	}
 
 	while (right - left >= UNROLL &&
@@ -435,10 +454,6 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 			else *rwr-- = x;
 		}
 	}
-	while (left <= right) {
-		if (comp(*left, piv)) { left++; lwr++; }
-		else { std::swap(*left, *right); right--; rwr--; }
- 	}
 	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
 	*outerleft = *rwr;
 	*rwr = piv;

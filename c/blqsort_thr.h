@@ -24,6 +24,7 @@
 
 #include <stddef.h>
 #include <string.h>
+#include <time.h>
 #define blqsmin(a, b) (((a) < (b)) ? (a) : (b))
 
 #define SMALLPART 1024
@@ -371,14 +372,18 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE piv = *pivp;
 
-	med5(left[1],left[2],left[3],left[4],left[5]);
-	med5(left[11],left[12],left[13],left[14],left[15]);
-	med5(left[21],left[22],left[23],left[24],left[25]);
+	unsigned r = blqs_rand();
+	int j = r & 7;
+	med5(left[1 + j], left[2 + j], left[3 + j], left[4 + j], left[5 + j]);
+	med5(left[11 + j], left[12 + j], left[13 + j], left[14 + j], left[15 + j]);
+	med5(left[21 + j], left[22 + j], left[23 + j], left[24 + j], left[25 + j]);
 	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2]);
-	med5(right[-24], right[-23], right[-22], right[-21], right[-20]);
-	med5(right[-14], right[-13], right[-12], right[-11], right[-10]);
-	med5(right[-4], right[-3], right[-2], right[-1], right[0]);
-	med7(left[3],left[13],left[23], piv, right[-22], right[-12], right[-2]);
+	med5(right[-24 - j], right[-23 - j], right[-22 - j], right[-21 - j], right[-20 - j]);
+	med5(right[-14 - j], right[-13 - j], right[-12 - j], right[-11 - j], right[-10 - j]);
+	med5(right[-4 - j], right[-3 - j], right[-2 - j], right[-1 - j], right[ 0 - j]);
+
+	med7(left[3 + j], left[13 + j], left[23 + j], piv,	right[-22 - j], right[-12 - j],
+		right[-2 - j]	);
 
 	left += 1;
 	*pivp = *outerleft;
@@ -387,6 +392,7 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE *rwr = right, *sw = swbuf;
 	BLQS_TYPE *lwr = left;
 
+	BLQS_TYPE *right0 = right;
 	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
 		ptrdiff_t avail = blqsmin(right - left, SWSZ - (sw - swbuf));
 		BLQS_TYPE* endp = right - avail;
@@ -403,6 +409,23 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 #endif
 			}
 		}
+	}
+	int swsz = sw - swbuf;
+	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
+		// the data isn't that random, so let the branch predictor work
+		// includes the case of empty swap buffer, where this is necessary
+		memcpy(right + 1, swbuf, swsz * sizeof(BLQS_TYPE));
+		right += swsz;
+		while (left <= right) {
+			if (BLQS_CMP(*left, piv)) left++;
+			else {
+				swap(*left, *right);
+				right--;
+			}
+		}
+		*outerleft = *right;
+		*right = piv;
+		return right;
 	}
 
 	while (right - left >= UNROLL &&
@@ -447,10 +470,6 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 			else *rwr-- = x;
 		}
 	}
-	while (left <= right) {
-		if (BLQS_CMP(*left, piv)) { left++; lwr++; }
-		else { swap(*left, *right); right--; rwr--; }
- 	}
 	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
 	*outerleft = *rwr;
 	*rwr = piv;
