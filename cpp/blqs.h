@@ -409,7 +409,7 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 	}
 	int swsz = sw - swbuf;
 	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
-		// the data isn't that random, so the branch predictor works (lumoto)
+		// the data isn't that random, so the branch predictor works (lomuto)
 		// includes the case of empty swap space, where this is necessary
 
 		std::memcpy(right + 1, swbuf, swsz * sizeof(T));

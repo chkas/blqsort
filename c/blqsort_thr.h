@@ -374,17 +374,20 @@ continue_partition:
 }
 
 // *****************************************************************************
+
 #ifndef BLQS_RAND
 #define BLQS_RAND
+
+#include <stdint.h>
 static uint64_t blqs_seed;
-static inline uint64_t blqs_rand(void) {
+static inline unsigned blqs_rand(void) {
 	if (!blqs_seed) blqs_seed = (uintptr_t)&blqs_seed ^ (uint64_t)time(NULL);
 	uint64_t x = blqs_seed;
 	x ^= x << 13;
 	x ^= x >> 7;
 	x ^= x << 17;
 	blqs_seed = x;
-	return x;
+	return (unsigned)x;
 }
 #endif
 
