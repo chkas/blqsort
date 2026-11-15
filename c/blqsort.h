@@ -28,7 +28,7 @@
 #include <time.h>
 #define blqsmin(a, b) (((a) < (b)) ? (a) : (b))
 
-#define SMALLPART 2048
+#define SMALLPART 1024
 #define SWSZ 384
 #define UNROLL 16
 
@@ -212,53 +212,6 @@ static void BLQS(heap_sort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	sort2(g,h);sort2(i,j);\
 } while (0)
 
-#define sort17(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) do { \
-	sort2(a,l);sort2(b,p);sort2(c,k);sort2(d,f);sort2(e,g);\
-	sort2(i,m);sort2(j,q);sort2(n,o);\
-	sort2(a,g);sort2(b,n);sort2(c,i);sort2(e,o);sort2(f,p);\
-	sort2(h,l);\
-	sort2(a,i);sort2(d,h);sort2(e,j);sort2(g,q);sort2(k,l);\
-	sort2(m,o);\
-	sort2(a,c);sort2(b,e);sort2(f,g);sort2(h,n);sort2(i,j);\
-	sort2(k,m);sort2(l,o);sort2(p,q);\
-	sort2(a,d);sort2(c,f);sort2(g,l);sort2(h,k);sort2(j,n);\
-	sort2(m,p);sort2(o,q);\
-	sort2(a,b);sort2(d,e);sort2(f,k);sort2(g,j);sort2(h,i);\
-	sort2(l,p);sort2(n,o);\
-	sort2(b,c);sort2(d,h);sort2(e,i);sort2(g,m);sort2(l,n);\
-	sort2(o,p);\
-	sort2(b,d);sort2(c,h);sort2(e,f);sort2(j,l);sort2(k,m);\
-	sort2(n,o);\
-	sort2(c,d);sort2(e,g);sort2(f,h);sort2(i,k);\
-	sort2(d,e);sort2(g,i);sort2(h,j);sort2(k,m);\
-	sort2(f,g);sort2(h,i);sort2(j,k);sort2(l,m);\
-	sort2(e,f);sort2(g,h);sort2(i,j);sort2(k,l);sort2(m,n);\
-} while(0)
-
-#define sort18(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r) do { \
-	sort2(a,b);sort2(c,d);sort2(e,f);sort2(g,h);sort2(i,j);\
-	sort2(k,l);sort2(m,n);sort2(o,p);sort2(q,r);\
-	sort2(a,c);sort2(b,d);sort2(e,m);sort2(f,n);sort2(g,i);\
-	sort2(j,l);sort2(o,q);sort2(p,r);\
-	sort2(a,o);sort2(b,q);sort2(c,p);sort2(d,r);\
-	sort2(a,g);sort2(b,k);sort2(c,j);sort2(h,q);sort2(i,p);\
-	sort2(l,r);\
-	sort2(b,e);sort2(d,j);sort2(f,h);sort2(i,o);sort2(k,m);\
-	sort2(n,q);\
-	sort2(a,b);sort2(c,f);sort2(d,n);sort2(e,o);sort2(h,j);\
-	sort2(i,k);sort2(m,p);sort2(q,r);\
-	sort2(b,c);sort2(d,f);sort2(e,g);sort2(l,n);sort2(m,o);\
-	sort2(p,q);\
-	sort2(e,i);sort2(f,m);sort2(g,k);sort2(h,l);sort2(j,n);\
-	sort2(b,e);sort2(c,i);sort2(d,g);sort2(f,h);sort2(j,p);\
-	sort2(k,m);sort2(l,o);sort2(n,q);\
-	sort2(c,e);sort2(f,i);sort2(g,k);sort2(h,l);sort2(j,m);\
-	sort2(n,p);\
-	sort2(d,f);sort2(g,i);sort2(h,k);sort2(j,l);sort2(m,o);\
-	sort2(d,e);sort2(f,g);sort2(h,i);sort2(j,k);sort2(l,m);\
-	sort2(n,o);\
-} while(0)
-
 static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
 	switch (partszm1_min_1) {
 	case 0: break;
@@ -282,10 +235,6 @@ static void BLQS(sorting_network)(BLQS_TYPE* l, int partszm1_min_1) {
 		l[12],l[13],l[14]); break;
 	case 15: sort16(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
 		l[12],l[13],l[14],l[15]); break;
-	case 16: sort17(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
-		l[12],l[13],l[14],l[15],l[16]); break;
-	case 17: sort18(l[0],l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8],l[9],l[10],l[11],
-		l[12],l[13],l[14],l[15],l[16],l[17]); break;
 	}
 }
 #define med5(a,b,c,d,e) do { \
@@ -311,9 +260,8 @@ static BLQS_TYPE* BLQS(partition_small)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE l1 = left[1], l2 = left[2], l3 = pivp[-1];
 	BLQS_TYPE r2 = pivp[1], r1 = right[-1], r0 = *right;
 
-	int cnt = !BLQS_CMP(l2, l1) + !BLQS_CMP(l3, l2) + !BLQS_CMP(piv, l3) +
-		!BLQS_CMP(r2, piv) + !BLQS_CMP(r1, r2) + !BLQS_CMP(r0, r1);
-	if (cnt > 5) {
+	int cnt = !BLQS_CMP(l2, l1) + !BLQS_CMP(l3, l2) + !BLQS_CMP(piv, l3) + !BLQS_CMP(r2, piv);
+	if (cnt == 4) {
 		int nwrong = 0;
 		for (BLQS_TYPE* pi = left + 1; pi <= right; pi++) {
 			nwrong += BLQS_CMP(*pi, *(pi - 1));
@@ -341,7 +289,6 @@ continue_partition:
 	right -= 2;
 
 	*pivp = *outerleft;
-
 	BLQS_TYPE swbuf[SMALLPART];
 	BLQS_TYPE* sw = swbuf;
 	BLQS_TYPE* lwr = left;
@@ -398,49 +345,49 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 
 	BLQS_TYPE piv = *pivp;
 
-	unsigned r = blqs_rand();
-	int j = r & 7;
+	int j = blqs_rand() & 7;
 	med5(left[1 + j], left[2 + j], left[3 + j], left[4 + j], left[5 + j]);
+	med5(left[6 + j], left[7 + j], left[8 + j], left[9 + j], left[10 + j]);
 	med5(left[11 + j], left[12 + j], left[13 + j], left[14 + j], left[15 + j]);
-	med5(left[21 + j], left[22 + j], left[23 + j], left[24 + j], left[25 + j]);
 	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2]);
-	med5(right[-24 - j], right[-23 - j], right[-22 - j], right[-21 - j], right[-20 - j]);
 	med5(right[-14 - j], right[-13 - j], right[-12 - j], right[-11 - j], right[-10 - j]);
+	med5(right[-9 - j], right[-8 - j], right[-7 - j], right[-6 - j], right[-5 - j]);
 	med5(right[-4 - j], right[-3 - j], right[-2 - j], right[-1 - j], right[ 0 - j]);
 
-	med7(left[3 + j], left[13 + j], left[23 + j], piv,	right[-22 - j], right[-12 - j],
-		right[-2 - j]	);
+	med7(left[3 + j], left[8 + j], left[13 + j], piv,	right[-12 - j], right[-7 - j],
+		right[-2 - j]);
 
 	left += 1;
 	*pivp = *outerleft;
 
-	BLQS_TYPE swbuf[SWSZ];
-	BLQS_TYPE *rwr = right, *sw = swbuf;
-	BLQS_TYPE *lwr = left;
-
+	BLQS_TYPE swbuf_dummy[SWSZ + 1]; // to avoid a pointer-before-array UB
+	BLQS_TYPE *swbuf = swbuf_dummy + 1;
+	BLQS_TYPE *lwr = left, *rwr = right;
 	BLQS_TYPE *right0 = right;
-	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
-		ptrdiff_t avail = blqsmin(right - left, SWSZ - (sw - swbuf));
+	BLQS_TYPE *sw = swbuf + SWSZ - 1;
+
+	while (UNROLL < sw - swbuf + 1 && left < right - UNROLL) {
+		ptrdiff_t avail = blqsmin(right - left, sw - swbuf + 1);
 		BLQS_TYPE* endp = right - avail;
 		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
 #if PREFER_IF
 				BLQS_TYPE x = *right--;
-				if (BLQS_CMP(x, piv)) *sw++ = x;
+				if (BLQS_CMP(x, piv)) *sw-- = x;
 				else *rwr-- = x;
 #else
 				int h = BLQS_CMP(*right, piv);
 				*rwr = *sw = *right--;
-				rwr -= !h; sw += h;
+				rwr -= !h; sw -= h;
 #endif
 			}
 		}
 	}
-	int swsz = sw - swbuf;
+	int swsz = swbuf + SWSZ - 1 - sw;
 	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
 		// the data isn't that random, so the branch predictor works
 		// includes the case of empty swap buffer, where this is necessary
-		memcpy(right + 1, swbuf, swsz * sizeof(BLQS_TYPE));
+		memcpy(right + 1, sw + 1, swsz * sizeof(BLQS_TYPE));
 		right += swsz;
 		while (left <= right) {
 			if (BLQS_CMP(*left, piv)) left++;
@@ -496,7 +443,7 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 			else *rwr-- = x;
 		}
 	}
-	memcpy(lwr, swbuf, (sw - swbuf) * sizeof(BLQS_TYPE));
+	memcpy(lwr, sw + 1, swsz * sizeof(BLQS_TYPE));
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
@@ -505,7 +452,7 @@ static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 // *****************************************************************************
 
 static void BLQS(smallsort)(BLQS_TYPE* left, BLQS_TYPE* right) {
-	while (right - left > 17) {
+	while (right - left > 15) {
 		BLQS_TYPE* mid = BLQS(partition_small)(left, right);
 		if (mid == NULL) return;
 		BLQS(smallsort)(left, mid - 1);

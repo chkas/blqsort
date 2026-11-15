@@ -44,7 +44,7 @@ static inline unsigned blqs_rand(void) {
 
 namespace blqs {
 
-constexpr int SMALLPART = 2048;
+constexpr int SMALLPART = 1024;
 constexpr int SWSZ = 384;
 constexpr int UNROLL = 16;
 
@@ -302,8 +302,10 @@ static inline T* partition_small(T* left, T* right, Compare comp) {
 	T piv = *pivp;
 	T l1 = left[1], l2 = left[2], l3 = pivp[-1];
 	T r2 = pivp[1], r1 = right[-1], r0 = *right;
-	int cnt = !comp(l2, l1) + !comp(l3, l2) + !comp(piv, l3) + !comp(r2, piv) + !comp(r1, r2) + !comp(r0, r1);
-	if (cnt > 5) {
+
+	int cnt = !comp(l2, l1) + !comp(l3, l2) + !comp(piv, l3) + !comp(r2, piv);
+	if (cnt == 4) {
+
 		int nwrong = 0;
 		for (T* pi = left + 1; pi <= right; pi++) {
 			nwrong += comp(*pi, *(pi - 1));
@@ -373,46 +375,48 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 
 	int j = blqs_rand() & 7;
 	med5(left[1 + j], left[2 + j], left[3 + j], left[4 + j], left[5 + j], comp);
+	med5(left[6 + j], left[7 + j], left[8 + j], left[9 + j], left[10 + j], comp);
 	med5(left[11 + j], left[12 + j], left[13 + j], left[14 + j], left[15 + j], comp);
-	med5(left[21 + j], left[22 + j], left[23 + j], left[24 + j], left[25 + j], comp);
 	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2], comp);
-	med5(right[-24 - j], right[-23 - j], right[-22 - j], right[-21 - j], right[-20 - j], comp);
 	med5(right[-14 - j], right[-13 - j], right[-12 - j], right[-11 - j], right[-10 - j], comp);
+	med5(right[-9 - j], right[-8 - j], right[-7 - j], right[-6 - j], right[-5 - j], comp);
 	med5(right[-4 - j], right[-3 - j], right[-2 - j], right[-1 - j], right[ 0 - j], comp);
 
-	med7(left[3 + j], left[13 + j], left[23 + j], piv,	right[-22 - j], right[-12 - j],
+	med7(left[3 + j], left[8 + j], left[13 + j], piv,	right[-12 - j], right[-7 - j],
 		right[-2 - j] , comp);
 
 	left += 1;
 	*pivp = *outerleft;
 
-	T swbuf[SWSZ];
-	T *lwr = left, *rwr = right, *sw = swbuf;
-
+	T swbuf_dummy[SWSZ + 1]; // to avoid a pointer-before-array UB
+	T *swbuf = swbuf_dummy + 1;
+	T *lwr = left, *rwr = right;
 	T *right0 = right;
-	while (UNROLL < SWSZ - (sw - swbuf) && left < right - UNROLL) {
-		ptrdiff_t avail = std::min(right - left, SWSZ - (sw - swbuf));
+	T *sw = swbuf + SWSZ - 1;
+
+	while (UNROLL < sw - swbuf + 1  && left < right - UNROLL) {
+		ptrdiff_t avail = std::min(right - left, sw - swbuf + 1);
 		T* endp = right - avail;
 		while (right > endp + UNROLL) {
 			for (int i = UNROLL; i--;) {
 #if PREFER_IF
 				T x = *right--;
-				if (comp(x, piv)) *sw++ = x;
+				if (comp(x, piv)) *sw-- = x;
 				else *rwr-- = x;
 #else
 				int h = comp(*right, piv);
 				*rwr = *sw = *right--;
-				rwr -= !h; sw += h;
+				rwr -= !h; sw -= h;
 #endif
 			}
 		}
 	}
-	int swsz = sw - swbuf;
+	int swsz = swbuf + SWSZ - 1 - sw;
+
 	if (swsz < SWSZ / 8 || right0 - right < SWSZ + SWSZ / 8) {
 		// the data isn't that random, so the branch predictor works (lomuto)
 		// includes the case of empty swap space, where this is necessary
-
-		std::memcpy(right + 1, swbuf, swsz * sizeof(T));
+		std::memcpy(right + 1, sw + 1, swsz * sizeof(T));
 		right += swsz;
 		while (left <= right) {
 			if (comp(*left, piv)) left++;
@@ -468,7 +472,7 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 			else *rwr-- = x;
 		}
 	}
-	std::memcpy(lwr, swbuf, (sw - swbuf) * sizeof(T));
+	std::memcpy(lwr, sw + 1, swsz * sizeof(T));
 	*outerleft = *rwr;
 	*rwr = piv;
 	return rwr;
