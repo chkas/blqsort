@@ -70,7 +70,7 @@ This involves more more than the necessary copy operations. For data types that 
 
 ### Pivot strategy, bad input and sorting network
 
-To avoid the `O(n²)` runtime caused by bad input data, the program can group identical elements together and switch to *heapsort* for that specific part if it detects a big imbalance during partitioning.
+To avoid the `O(n²)` runtime caused by bad input data, the program can group identical elements together and switch to *heapsort* for this specific part if it repeatedly detects imbalances during partitioning. Partially sorted entries are detected and processed in an efficient manner.
 
 For larger parts, it uses a median-of-medians strategy to find a good pivot. In addition, critical partitioning loops are explicitly unrolled.
 

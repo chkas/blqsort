@@ -23,30 +23,6 @@
 #include <mutex>
 #include <condition_variable>
 
-#ifndef BLQS_RAND
-#define BLQS_RAND
-
-#include <random>
-static thread_local uint64_t blqs_seed;
-
-static inline unsigned blqs_rand(void) {
-	if (!blqs_seed) {
-		std::random_device rd;
-		blqs_seed =
-			((uintptr_t)&blqs_seed) ^
-			(((uint64_t)rd() << 32) | (uint64_t)rd());
-		if (!blqs_seed) blqs_seed = 1;
-	}
-
-	uint64_t x = blqs_seed;
-	x ^= x << 13;
-	x ^= x >> 7;
-	x ^= x << 17;
-	blqs_seed = x;
-	return (unsigned)x;
-}
-#endif
-
 namespace blqs {
 
 constexpr int SMALLPART = 1024;
@@ -311,7 +287,6 @@ static inline T* partition_small(T* left, T* right, Compare comp) {
 
 	int cnt = !comp(l2, l1) + !comp(l3, l2) + !comp(piv, l3) + !comp(r2, piv);
 	if (cnt == 4) {
-
 		int nwrong = 0;
 		for (T* pi = left + 1; pi <= right; pi++) {
 			nwrong += comp(*pi, *(pi - 1));
@@ -379,17 +354,12 @@ static inline T* partition_large(T* left, T* right, Compare comp) {
 	T* pivp = left + (right - left) / 2;
 	T piv = *pivp;
 
-	int j = blqs_rand() & 7;
-	med5(left[1 + j], left[2 + j], left[3 + j], left[4 + j], left[5 + j], comp);
-	med5(left[6 + j], left[7 + j], left[8 + j], left[9 + j], left[10 + j], comp);
-	med5(left[11 + j], left[12 + j], left[13 + j], left[14 + j], left[15 + j], comp);
-	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2], comp);
-	med5(right[-14 - j], right[-13 - j], right[-12 - j], right[-11 - j], right[-10 - j], comp);
-	med5(right[-9 - j], right[-8 - j], right[-7 - j], right[-6 - j], right[-5 - j], comp);
-	med5(right[-4 - j], right[-3 - j], right[-2 - j], right[-1 - j], right[ 0 - j], comp);
-
-	med7(left[3 + j], left[8 + j], left[13 + j], piv,	right[-12 - j], right[-7 - j],
-		right[-2 - j] , comp);
+	med5(left[1], left[2], left[3], left[4], left[5], comp);
+	med5(pivp[-10], pivp[-9], pivp[-8], pivp[-7], pivp[-6], comp);
+	med5(pivp[-5], pivp[-3], piv, pivp[3], pivp[5], comp);
+	med5(pivp[6], pivp[7], pivp[8], pivp[9], pivp[10], comp);
+	med5(right[-4], right[-3], right[-2], right[-1], right[0], comp);
+	med5(left[3], pivp[-8],  piv, pivp[8], right[-2] , comp);
 
 	left += 1;
 	*pivp = *outerleft;
@@ -531,34 +501,12 @@ static void sort_thr(T* left, T* right, Compare comp) {
 
 template<typename T, typename Compare>
 static void blqsort(T* left, T* right, Compare comp) {
+	int badparts = 0;
 	while (1) {
 		ptrdiff_t partszm1 = right - left;
 		if (partszm1 <= SMALLPART) break;
 
 		T* mid = partition_large(left, right, comp);
-
-		if (mid - left < partszm1 / 16) {
-			if (mid > left) blqsort(left, mid - 1, comp);
-			T piv = *mid;
-			mid += 1;
-			// collect duplicates
-			for (T* p = mid; p <= right; p++) {
-				if (!comp(piv, *p)) {
-					std::swap(*mid, *p);
-					mid++;
-				}
-			}
-			left = mid;
-			if (right - left < SMALLPART) break;
-
-			// second chance before fallback to heapsort
-			mid = partition_large(left, right, comp);
-			if (mid - left < partszm1 / 16) {
-				if (mid > left) heap_sort(left, mid - 1, comp);
-				if (mid < right) heap_sort(mid + 1, right, comp);
-				return;
-			}
-		}
 
 		// ---------------------- threads ---------------------------
 		if ((mid - left) > THREAD_MIN_TRIVIAL && n_threads < (int)max_threads) {
@@ -581,6 +529,26 @@ static void blqsort(T* left, T* right, Compare comp) {
 		else {
 			blqsort(mid + 1, right, comp);
 			right = mid - 1;
+		}
+		if (right - left > partszm1 / 64 * 63) {
+			badparts += 1;
+			if (badparts > 32) {
+				heap_sort(left, right, comp);
+				return;
+			}
+			if (left == mid + 1) {
+				T piv = *mid;
+				mid++;
+				// collect duplicates
+				for (T* p = left; p <= right; p++) {
+					if (!comp(piv, *p)) {
+						std::swap(*mid, *p);
+						mid++;
+					}
+				}
+				left = mid;
+				if (right - left < SMALLPART) break;
+			}
 		}
 	}
 	smallsort(left, right, comp);

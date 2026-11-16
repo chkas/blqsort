@@ -323,39 +323,17 @@ continue_partition:
 
 // *****************************************************************************
 
-#ifndef BLQS_RAND
-#define BLQS_RAND
-
-#include <stdint.h>
-static uint64_t blqs_seed;
-static inline unsigned blqs_rand(void) {
-	if (!blqs_seed) blqs_seed = (uintptr_t)&blqs_seed ^ (uint64_t)time(NULL);
-	uint64_t x = blqs_seed;
-	x ^= x << 13;
-	x ^= x >> 7;
-	x ^= x << 17;
-	blqs_seed = x;
-	return (unsigned)x;
-}
-#endif
-
 static BLQS_TYPE* BLQS(partition)(BLQS_TYPE* left, BLQS_TYPE* right) {
 	BLQS_TYPE* outerleft = left;
 	BLQS_TYPE* pivp = left + (right - left) / 2;
-
 	BLQS_TYPE piv = *pivp;
 
-	int j = blqs_rand() & 7;
-	med5(left[1 + j], left[2 + j], left[3 + j], left[4 + j], left[5 + j]);
-	med5(left[6 + j], left[7 + j], left[8 + j], left[9 + j], left[10 + j]);
-	med5(left[11 + j], left[12 + j], left[13 + j], left[14 + j], left[15 + j]);
-	med5(pivp[-2], pivp[-1], piv, pivp[1], pivp[2]);
-	med5(right[-14 - j], right[-13 - j], right[-12 - j], right[-11 - j], right[-10 - j]);
-	med5(right[-9 - j], right[-8 - j], right[-7 - j], right[-6 - j], right[-5 - j]);
-	med5(right[-4 - j], right[-3 - j], right[-2 - j], right[-1 - j], right[ 0 - j]);
-
-	med7(left[3 + j], left[8 + j], left[13 + j], piv,	right[-12 - j], right[-7 - j],
-		right[-2 - j]);
+	med5(left[1], left[2], left[3], left[4], left[5]);
+	med5(pivp[-10], pivp[-9], pivp[-8], pivp[-7], pivp[-6]);
+	med5(pivp[-5], pivp[-3], piv, pivp[3], pivp[5]);
+	med5(pivp[6], pivp[7], pivp[8], pivp[9], pivp[10]);
+	med5(right[-4], right[-3], right[-2], right[-1], right[0]);
+	med5(left[3], pivp[-8],  piv, pivp[8], right[-2]);
 
 	left += 1;
 	*pivp = *outerleft;
@@ -462,33 +440,13 @@ static void BLQS(smallsort)(BLQS_TYPE* left, BLQS_TYPE* right) {
 }
 
 static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
+	int badparts = 0;
 	while (1) {
 		ptrdiff_t partszm1 = right - left;
 		if (partszm1 <= SMALLPART) break;
+
 		BLQS_TYPE* mid = BLQS(partition)(left, right);
 
-		if (mid - left < partszm1 / 16) {
-			if (mid > left) BLQS(sortr)(left, mid - 1);
-			BLQS_TYPE piv = *mid;
-			mid += 1;
-			// collect duplicates
-			for (BLQS_TYPE* p = mid; p <= right; p++) {
-				if (!BLQS_CMP(piv, *p)) {
-					swap(*mid, *p);
-					mid++;
-				}
-			}
-			left = mid;
-			if (right - left < SMALLPART) break;
-
-			// second chance before fallback to heapsort
-			mid = BLQS(partition)(left, right);
-			if (mid - left < (right - left) / 16) {
-				if (mid > left) BLQS(heap_sort)(left, mid - 1);
-				if (mid < right) BLQS(heap_sort)(mid + 1, right);
-				return;
-			}
-		}
 		if (mid - left < right - mid) {
 			BLQS(sortr)(left, mid - 1);
 			left = mid + 1;
@@ -496,6 +454,26 @@ static void BLQS(sortr)(BLQS_TYPE* left, BLQS_TYPE* right) {
 		else {
 			BLQS(sortr)(mid + 1, right);
 			right = mid - 1;
+		}
+		if (right - left > partszm1 / 64 * 63) {
+			badparts += 1;
+			if (badparts > 32) {
+				BLQS(heap_sort)(left, right);
+				return;
+			}
+			if (left == mid + 1) {
+				BLQS_TYPE piv = *mid;
+				mid++;
+				// collect duplicates
+				for (BLQS_TYPE* p = left; p <= right; p++) {
+					if (!BLQS_CMP(piv, *p)) {
+						swap(*mid, *p);
+						mid++;
+					}
+				}
+				left = mid;
+				if (right - left < SMALLPART) break;
+			}
 		}
 	}
 	BLQS(smallsort)(left, right);
