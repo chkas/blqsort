@@ -11,10 +11,19 @@ There are four implementations of **blqsort** here, each provided as a single he
 
 The following benchmarks show the execution times for sorting 50 million `doubles` using different sorting implementations. The measurements were taken on an *Apple M1* system using *Clang* and on an *Intel i5-9300H Linux* system using *GCC*, both compiled with the `-O3` option. [test_double.cpp](cpp/test_double.cpp)
 
-| doubles | Apple M1 | Intel i5-9300H |
+| random data | Apple M1 | Intel i5-9300H |
 | :--- | :--- | :--- |
-| std::sort | 1.33s | 4.02s |
+| std::sort | 1.31s | 3.96s |
 | blqsort | 0.68s | 1.32s |
+
+---
+
+Real-world data is often already highly sorted:
+
+| 99% sorted | Apple M1 | Intel i5-9300H |
+| :--- | :--- | :--- |
+| std::sort | 1.10s | 1.56 |
+| blqsort | 0.60s | 1.25 |
 
 For a fair comparison, the single-threaded version of `blqs` was used here. On the M1, the multithreaded versions are roughly another factor of 3 faster. In terms of runtime, the C++ versions differ only very little from the C version.
 
