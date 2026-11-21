@@ -24,7 +24,7 @@ constexpr int SMALLPART = 1024;
 constexpr int SWSZ = 384;
 constexpr int UNROLL = 16;
 
-constexpr long BLSZ = 512;
+constexpr long BLSZ = 896;
 
 template<typename T, typename Compare>
 static inline void sort2(T& a, T& b, Compare comp) {
@@ -513,11 +513,35 @@ static inline void insert_sort(T* left, T* right, Compare comp) {
 	}
 }
 
-template <typename T, typename Compare>
-static inline void med3(T* a, T* b, T* c, Compare comp) {
+template<typename T, typename Compare>
+static inline void sort2b(T* a, T* b, Compare comp) {
 	if (comp(*b, *a)) std::swap(*a, *b);
-	if (comp(*c, *a)) std::swap(*a, *c);
-	if (comp(*c, *b)) std::swap(*b, *c);
+}
+
+template<typename T, typename Compare>
+static inline void med5b(T* a, T* b, T* c, T* d, T* e, Compare comp) {
+	sort2b(a, b, comp); sort2b(c, d, comp);
+	sort2b(a, c, comp); sort2b(b, d, comp);
+	sort2b(b, c, comp); sort2b(c, e, comp);
+	sort2b(b, c, comp);
+}
+
+template <typename T, typename Compare>
+static inline int med3b(T* a, T* b, T* c, Compare comp) {
+	int cnt = 0;
+	if (comp(*b, *a)) {
+		std::swap(*a, *b);
+		cnt += 1;
+	}
+	if (comp(*c, *a)) {
+		std::swap(*a, *c);
+		cnt += 1;
+	}
+	if (comp(*c, *b)) {
+		std::swap(*b, *c);
+		cnt += 1;
+	}
+	return cnt;
 }
 
 // Based on BlockQuicksort by Edelkamp and Weiß
@@ -525,6 +549,7 @@ static inline void med3(T* a, T* b, T* c, Compare comp) {
 template <typename T, typename Compare>
 static void block_qsort(T* left0, T* right0, Compare comp) {
 
+	int badparts = 0;
 	while (right0 - left0 > 16) {
 
 		size_t sizem1 = right0 - left0;
@@ -533,83 +558,133 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 		T* left = left0 + 1;
 		T* right = right0;
 
-		if (sizem1 > 64) {
-			med3(left, left + 1, left + 2, comp);
-			med3(mid - 1, mid, mid + 1, comp);
-			med3(right - 2, right - 1, right, comp);
-			med3(left + 1, mid, right - 1, comp);
-		}
-		else {
-			med3(left, mid, right, comp);
-			left += 1;
-			right -= 1;
-		}
-
-		T pivot = std::move(*mid);
-		*mid = std::move(*left0);
-
-		T* left_p[BLSZ];
-		T* right_p[BLSZ];
-
-		int nleft = 0;
-		int nright = 0;
-		int left_offs = 0, right_offs = 0;
-
-		while (right >= left) {
-			int blsz = std::min(BLSZ, right - left + 1);
-			if (nleft == 0) {
-				for (T* endl = left + blsz; left < endl; left++) {
-					left_p[nleft] = left;
-					nleft += !comp(*left, pivot);
-				}
-				left_offs = 0;
+		if (sizem1 > 15000) {
+			if (sizem1 > 250000) {
+				med5b(left, left + 1, left + 2, left + 3, left + 4, comp);
+				med5b(mid - 7, mid - 6, mid - 5, mid - 4, mid - 3, comp);
+				med5b(mid - 2, mid - 1, mid, mid + 1, mid + 2, comp);
+				med5b(mid + 3, mid + 4, mid + 5, mid + 6, mid + 7, comp);
+				med5b(right - 4, right - 3, right - 2, right - 1, right, comp);
+				med5b(left + 2, mid - 5, mid, mid + 5, right - 2, comp);
 			}
 			else {
-				for (T* endr = right - blsz; right > endr; right--) {
-					right_p[nright] = right;
-					nright += !comp(pivot, *right);
-				}
-				right_offs = 0;
-			}
-			int nswaps = std::min(nleft, nright);
-			for (int k = 0; k < nswaps; k++) {
-				std::iter_swap(left_p[left_offs], right_p[right_offs]);
-				left_offs++;
-				right_offs++;
-			}
-			nleft -= nswaps;
-			nright -= nswaps;
-		}
-		if (nleft) {
-			for (int k = left_offs + nleft - 1; k >= left_offs; k--, right--) {
-				std::iter_swap(left_p[k], right);
+				med3b(left, left + 1, left + 2, comp);
+				med3b(mid - 1, mid, mid + 1, comp);
+				med3b(right - 2, right - 1, right, comp);
+				med3b(left + 1, mid, right - 1, comp);
 			}
 		}
 		else {
-			for (int k = right_offs + nright - 1; k >= right_offs; k--, left++) {
-				std::iter_swap(right_p[k], left);
+			int nsw = med3b(left, mid, right, comp);
+			left += 1;
+			right -= 1;
+
+			if (nsw == 0) {
+				int nwrong = 0;
+				for (T* pi = left0 + 1; pi <= right0; pi++) {
+					nwrong += comp(*pi, *(pi - 1));
+					if (nwrong > 3) goto continue_partition;
+				}
+				if (nwrong == 0) return;		// already sorted
+				//printf("insert-sort\n");
+				break;
 			}
-			right = left - 1;
 		}
-		*left0 = std::move(*right);
-		*right = std::move(pivot);
 
-		ptrdiff_t szl = right - left0;
-		ptrdiff_t szr = right0 - right;
-		ptrdiff_t szmin = (szl < szr) ? szl : szr;
+	continue_partition:
 
-		if (szmin < (right0 - left0) / 16) {
-			if (right > left0) heap_sort(left0, right - 1, comp);
-			if (right < right0) heap_sort(right + 1, right0, comp);
-			return;
+		{
+			T piv = std::move(*mid);
+			*mid = std::move(*left0);
+
+			T* left_p[BLSZ];
+			T* right_p[BLSZ];
+
+			int nleft = 0;
+			int nright = 0;
+			int left_offs = 0, right_offs = 0;
+
+			int minx = std::min(BLSZ, right - left + 1);
+			for (T* endl = left + minx; left < endl; left++) {
+				left_p[nleft] = left;
+				nleft += !comp(*left, piv);
+			}
+
+			// 99.9% pre sorted -> save 1%
+			if (minx == BLSZ && nleft <= 2) {
+				// Hoare
+				if (nleft != 0) left = left0 + 1;
+				while (1) {
+					while (left <= right && comp(*left, piv)) left++;
+					while (left <= right && comp(piv, *right)) right--;
+					if (left >= right) break;
+					std::iter_swap(left, right);
+					left++;
+					right--;
+				}
+				goto part_done;
+			}
+
+			while (1) {
+				int nswaps = std::min(nleft, nright);
+				for (int k = 0; k < nswaps; k++) {
+					std::iter_swap(left_p[left_offs], right_p[right_offs]);
+					left_offs++;
+					right_offs++;
+				}
+				nleft -= nswaps;
+				nright -= nswaps;
+
+				if (right < left) break;
+
+				int blsz = std::min(BLSZ, right - left + 1);
+				if (nleft == 0) {
+					for (T* endl = left + blsz; left < endl; left++) {
+						left_p[nleft] = left;
+						nleft += !comp(*left, piv);
+					}
+					left_offs = 0;
+				}
+				else {
+					for (T* endr = right - blsz; right > endr; right--) {
+						right_p[nright] = right;
+						nright += !comp(piv, *right);
+					}
+					right_offs = 0;
+				}
+			}
+			if (nleft) {
+				for (int k = left_offs + nleft - 1; k >= left_offs; k--, right--) {
+					std::iter_swap(left_p[k], right);
+				}
+			}
+			else {
+				for (int k = right_offs + nright - 1; k >= right_offs; k--, left++) {
+					std::iter_swap(right_p[k], left);
+				}
+				right = left - 1;
+			}
+		part_done:
+			*left0 = std::move(*right);
+			*right = std::move(piv);
 		}
-		if (szl < szr) {
+
+		if (right - left0 < right0 - right) {
 			block_qsort(left0, right - 1, comp);
 			left0 = right + 1;
 		} else {
 			block_qsort(right + 1, right0, comp);
 			right0 = right - 1;
 		}
+		if (right0 - left0 > sizem1 / 64 * 63 + 4) {
+			badparts += 1;
+			if (badparts > 32) {
+				// printf("heapsort\n");
+				heap_sort(left0, right0, comp);
+				return;
+			}
+		}
+
 	}
 	insert_sort(left0, right0, comp);
 }
