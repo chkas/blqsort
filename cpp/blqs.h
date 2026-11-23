@@ -24,7 +24,7 @@ constexpr int SMALLPART = 1024;
 constexpr int SWSZ = 384;
 constexpr int UNROLL = 16;
 
-constexpr long BLSZ = 896;
+constexpr long BLSZ = 1024;
 
 template<typename T, typename Compare>
 static inline void sort2(T& a, T& b, Compare comp) {
@@ -502,46 +502,31 @@ static void blqsort(T* left, T* right, Compare comp) {
 
 template <typename T, typename Compare>
 static inline void insert_sort(T* left, T* right, Compare comp) {
-	for (T* i = left + 1; i <= right; i++) {
+	for (T* i = left + 1; i <= right; ++i) {
+		if (!comp(*i, *(i - 1))) continue;
 		T key = std::move(*i);
 		T* j = i;
-		while (j > left && comp(key, *(j - 1))) {
+
+		do {
 			*j = std::move(*(j - 1));
 			j--;
-		}
+		} while (j > left && comp(key, *(j - 1)));
 		*j = std::move(key);
 	}
 }
 
 template<typename T, typename Compare>
-static inline void sort2b(T* a, T* b, Compare comp) {
-	if (comp(*b, *a)) std::swap(*a, *b);
+static inline void sort2b(T* &a, T* &b, Compare comp) {
+	if (comp(*b, *a)) std::swap(a, b);
 }
 
 template<typename T, typename Compare>
-static inline void med5b(T* a, T* b, T* c, T* d, T* e, Compare comp) {
+static inline T* med5(T* a, T* b, T* c, T* d, T* e, Compare comp) {
 	sort2b(a, b, comp); sort2b(c, d, comp);
 	sort2b(a, c, comp); sort2b(b, d, comp);
 	sort2b(b, c, comp); sort2b(c, e, comp);
 	sort2b(b, c, comp);
-}
-
-template <typename T, typename Compare>
-static inline int med3b(T* a, T* b, T* c, Compare comp) {
-	int cnt = 0;
-	if (comp(*b, *a)) {
-		std::swap(*a, *b);
-		cnt += 1;
-	}
-	if (comp(*c, *a)) {
-		std::swap(*a, *c);
-		cnt += 1;
-	}
-	if (comp(*c, *b)) {
-		std::swap(*b, *c);
-		cnt += 1;
-	}
-	return cnt;
+	return c;
 }
 
 // Based on BlockQuicksort by Edelkamp and Weiß
@@ -553,33 +538,23 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 	while (right0 - left0 > 16) {
 
 		size_t sizem1 = right0 - left0;
-		T* mid = left0 + sizem1 / 2;
+		T* mid0 = left0 + sizem1 / 2;
 
 		T* left = left0 + 1;
 		T* right = right0;
+		T* mid;
 
-		if (sizem1 > 15000) {
-			if (sizem1 > 250000) {
-				med5b(left, left + 1, left + 2, left + 3, left + 4, comp);
-				med5b(mid - 7, mid - 6, mid - 5, mid - 4, mid - 3, comp);
-				med5b(mid - 2, mid - 1, mid, mid + 1, mid + 2, comp);
-				med5b(mid + 3, mid + 4, mid + 5, mid + 6, mid + 7, comp);
-				med5b(right - 4, right - 3, right - 2, right - 1, right, comp);
-				med5b(left + 2, mid - 5, mid, mid + 5, right - 2, comp);
-			}
-			else {
-				med3b(left, left + 1, left + 2, comp);
-				med3b(mid - 1, mid, mid + 1, comp);
-				med3b(right - 2, right - 1, right, comp);
-				med3b(left + 1, mid, right - 1, comp);
-			}
+		if (sizem1 > 2000) {
+			T* m1 = med5(left, left + 1, left + 2, left + 3, left + 4, comp);
+			T* m2 = med5(mid0 - 7, mid0 - 6, mid0 - 5, mid0 - 4, mid0 - 3, comp);
+			T* m3 = med5(mid0 - 2, mid0 - 1, mid0, mid0 + 1, mid0 + 2, comp);
+			T* m4 = med5(mid0 + 3, mid0 + 4, mid0 + 5, mid0 + 6, mid0 + 7, comp);
+			T* m5 = med5(right - 4, right - 3, right - 2, right - 1, right, comp);
+			mid = med5(m1, m2, m3, m4, m5, comp);
 		}
 		else {
-			int nsw = med3b(left, mid, right, comp);
-			left += 1;
-			right -= 1;
-
-			if (nsw == 0) {
+			mid = med5(left, mid0 - 1, mid0, mid0 + 1, right, comp);
+			if (mid == mid0) {
 				int nwrong = 0;
 				for (T* pi = left0 + 1; pi <= right0; pi++) {
 					nwrong += comp(*pi, *(pi - 1));
@@ -590,9 +565,7 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 				break;
 			}
 		}
-
 	continue_partition:
-
 		{
 			T piv = std::move(*mid);
 			*mid = std::move(*left0);
@@ -603,15 +576,13 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 			int nleft = 0;
 			int nright = 0;
 			int left_offs = 0, right_offs = 0;
-
 			int minx = std::min(BLSZ, right - left + 1);
 			for (T* endl = left + minx; left < endl; left++) {
 				left_p[nleft] = left;
 				nleft += !comp(*left, piv);
 			}
-
 			// 99.9% pre sorted -> save 1%
-			if (minx == BLSZ && nleft <= 2) {
+			if (minx == BLSZ && nleft <= 3) {
 				// Hoare
 				if (nleft != 0) left = left0 + 1;
 				while (1) {
@@ -622,9 +593,8 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 					left++;
 					right--;
 				}
-				goto part_done;
+				goto partition_done;
 			}
-
 			while (1) {
 				int nswaps = std::min(nleft, nright);
 				for (int k = 0; k < nswaps; k++) {
@@ -664,11 +634,10 @@ static void block_qsort(T* left0, T* right0, Compare comp) {
 				}
 				right = left - 1;
 			}
-		part_done:
+		partition_done:
 			*left0 = std::move(*right);
 			*right = std::move(piv);
 		}
-
 		if (right - left0 < right0 - right) {
 			block_qsort(left0, right - 1, comp);
 			left0 = right + 1;

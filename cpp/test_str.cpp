@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <chrono>
+#include <string>
+
 uint32_t state = 1;
 void mrand_init() {
 	state = 1;
